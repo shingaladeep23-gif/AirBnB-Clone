@@ -17,7 +17,7 @@ npm run typecheck  # tsc --noEmit
 app/               Next.js App Router — layout, page, global CSS
   styles/
     tokens.css     THE design system (Tailwind v4 @theme). Single source of truth.
-    fonts.css      @font-face for Airbnb Cereal VF + --font-sans
+    fonts.css      composes --font-sans from --font-cereal + fallbacks
 components/
   listing/         View 1 — the listing page and its sections
   photo-tour/      View 2 — full-screen gallery overlay
@@ -25,7 +25,8 @@ components/
 lib/
   types.ts         Domain model — the contract between data and views
   listing.ts       The listing content, typed + price/capacity formatters
-  fonts.ts         Font constants and the next/font migration note
+  fonts.ts         Airbnb Cereal VF via next/font/local
+  overlay.ts       URL <-> overlay-state mapping (the Photo Tour is deep-linkable)
   hooks/           useScrollLock, useEscapeKey, useArrowKeys
 public/assets/     images, fonts, ui, avatars
 .claude/           sub-agent + skill configs (see below)

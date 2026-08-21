@@ -11,8 +11,10 @@ description: How this project's design tokens work and how to consume or extend 
 there is no `tailwind.config.js`.** That file *is* the config. Editing it changes
 both the CSS variables and the generated utilities.
 
-Font loading is separate: `app/styles/fonts.css` (the `@font-face` and
-`--font-sans`), with `lib/fonts.ts` holding typed constants and the migration note.
+Font loading is separate: `lib/fonts.ts` loads Airbnb Cereal VF through
+`next/font/local` and exposes it as `--font-cereal`; `app/styles/fonts.css`
+composes that into `--font-sans` with its fallback chain. Components reference
+only `--font-sans` (or `font-sans`), never the font file or family directly.
 
 Both are imported by `app/globals.css`, which is imported once in `app/layout.tsx`.
 

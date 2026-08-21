@@ -1,7 +1,13 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Listing, OverlayState } from "@/lib/types";
+import {
+  overlayFromSearchParams,
+  searchParamsForOverlay,
+  toQuerySuffix,
+} from "@/lib/overlay";
 import { SiteHeader } from "./SiteHeader";
 import { TitleBlock } from "./TitleBlock";
 import { HeroGallery } from "./HeroGallery";
@@ -16,22 +22,55 @@ import { Lightbox } from "@/components/lightbox/Lightbox";
 /**
  * Composition root for all three views.
  *
- * WHY OVERLAY STATE LIVES HERE: Photo Tour and Lightbox are both entered from the
- * gallery and can hand off to each other (tour → click a photo → lightbox → close
- * → back to tour). Owning one `OverlayState` at the top makes those transitions
- * explicit and keeps the two overlays from ever being open at once.
+ * OVERLAY STATE COMES FROM THE URL, NOT useState. The reference pushes
+ * `?modal=PHOTO_TOUR_SCROLLABLE` when the Photo Tour opens, which makes the
+ * overlay deep-linkable and makes browser back/forward close and reopen it.
+ * Deriving state from `useSearchParams` gets that behaviour for free; local state
+ * would break it (back would leave the page instead of closing the overlay).
  *
- * T4–T6 fill in the children; this file's job is wiring, not markup.
+ * See `lib/overlay.ts` for the URL <-> state mapping.
  */
 export function ListingPage({ listing }: { listing: Listing }) {
-  const [overlay, setOverlay] = useState<OverlayState>({ kind: "none" });
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const openPhotoTour = useCallback(() => setOverlay({ kind: "photo-tour" }), []);
-  const openLightbox = useCallback(
-    (photoIndex: number) => setOverlay({ kind: "lightbox", photoIndex }),
-    [],
+  const overlay = overlayFromSearchParams(
+    new URLSearchParams(searchParams.toString()),
+    listing.photos.length,
   );
-  const closeOverlay = useCallback(() => setOverlay({ kind: "none" }), []);
+
+  const navigateToOverlay = useCallback(
+    (next: OverlayState) => {
+      const params = searchParamsForOverlay(
+        new URLSearchParams(searchParams.toString()),
+        next,
+      );
+      const url = `${pathname}${toQuerySuffix(params)}`;
+
+      // push() for opening (so back closes it); the close path uses back() below
+      // so we don't grow the history stack on open/close cycles.
+      router.push(url, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const openPhotoTour = useCallback(
+    () => navigateToOverlay({ kind: "photo-tour" }),
+    [navigateToOverlay],
+  );
+
+  const openLightbox = useCallback(
+    (photoIndex: number) => navigateToOverlay({ kind: "lightbox", photoIndex }),
+    [navigateToOverlay],
+  );
+
+  // Closing mirrors the browser's own back gesture, so the two can't disagree.
+  const closeOverlay = useCallback(() => router.back(), [router]);
+
+  // Closing the Lightbox should reveal the Photo Tour underneath rather than
+  // dismissing both — history handles that, since the tour is its own entry.
+  const closeLightbox = useCallback(() => router.back(), [router]);
 
   return (
     <>
@@ -62,7 +101,9 @@ export function ListingPage({ listing }: { listing: Listing }) {
 
       <SiteFooter />
 
-      {overlay.kind === "photo-tour" && (
+      {/* The tour stays mounted under the lightbox so closing the lightbox
+          returns to it — matching the reference's layering. */}
+      {(overlay.kind === "photo-tour" || overlay.kind === "lightbox") && (
         <PhotoTour
           listing={listing}
           onClose={closeOverlay}
@@ -74,7 +115,7 @@ export function ListingPage({ listing }: { listing: Listing }) {
         <Lightbox
           photos={listing.photos}
           initialIndex={overlay.photoIndex}
-          onClose={closeOverlay}
+          onClose={closeLightbox}
         />
       )}
     </>

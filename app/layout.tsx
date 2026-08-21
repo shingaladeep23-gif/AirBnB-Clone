@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { cereal } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,7 +21,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={cereal.variable}>
       <body>
         {/* Skip link — the listing page is long (~6250px) and the header is
             sticky, so keyboard users need a way past the nav. */}
