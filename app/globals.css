@@ -1,0 +1,76 @@
+@import "tailwindcss";
+@import "./styles/tokens.css";
+@import "./styles/fonts.css";
+
+/*
+ * Base layer — global resets and element defaults.
+ * Everything here is intentionally minimal: component styling belongs in the
+ * components, and all values come from tokens.css.
+ */
+
+@layer base {
+  html {
+    /* The reference never lets the page shift horizontally, and the sticky
+       header must not jump when a modal locks scrolling. */
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Airbnb sets tabular-ish tight headings; browsers default h1-h6 to bold+large,
+     which fights our type scale. Reset and let utilities drive it. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-size: inherit;
+    font-weight: inherit;
+  }
+
+  /* Keyboard focus must stay visible — the Lightbox and Photo Tour are
+     keyboard-driven (arrow keys, Esc), so focus rings are load-bearing for a11y.
+     Mouse users don't see them thanks to :focus-visible. */
+  :focus-visible {
+    outline: 2px solid var(--color-border-strong);
+    outline-offset: 2px;
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  /*
+   * Locks body scroll behind the Photo Tour / Lightbox overlays.
+   * Applied by the overlay components via the `useScrollLock` hook rather than
+   * being toggled ad hoc, so nested overlays can't leave the page stuck.
+   */
+  .scroll-locked {
+    overflow: hidden;
+  }
+
+  /*
+   * Accessible visually-hidden text (skip links, icon-button labels, live-region
+   * announcements). Kept as a utility so every view uses the same implementation.
+   */
+  .sr-only-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border-width: 0;
+  }
+}

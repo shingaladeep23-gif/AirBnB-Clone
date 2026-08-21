@@ -1,0 +1,48 @@
+/*
+ * ============================================================================
+ * FONT LOADING — Airbnb Cereal VF (variable, weights 200–900)
+ * ============================================================================
+ *
+ * WHY @font-face AND NOT next/font/local (read before "fixing" this):
+ *
+ * `next/font/local` resolves its `src` path at BUILD TIME and throws a hard
+ * compile error if the file is absent. The Cereal woff2 is still being captured
+ * (Michael's T2), so a next/font/local call would break `npm run build` for
+ * everyone until that lands — unacceptable for a foundation commit.
+ *
+ * A plain @font-face degrades gracefully instead: while the file is missing the
+ * browser silently falls through to the system stack below, and the moment the
+ * real woff2 is dropped at the path below it starts rendering with ZERO code
+ * changes. That is exactly the "wire it up now, light it up later" behaviour the
+ * task asked for.
+ *
+ * TO DROP THE FONT IN: place the file at
+ *     public/assets/fonts/AirbnbCerealVF.woff2
+ * and reload. Nothing else to change.
+ *
+ * MIGRATING TO next/font/local LATER (optional, once the file is committed):
+ * see lib/fonts.ts — it documents the exact swap and keeps the same CSS variable
+ * name, so no component has to change.
+ */
+
+@font-face {
+  font-family: "Airbnb Cereal VF";
+  src: url("/assets/fonts/AirbnbCerealVF.woff2") format("woff2-variations");
+  /* Variable font: one file serves the whole 200–900 range. */
+  font-weight: 200 900;
+  font-style: normal;
+  /* `swap` renders fallback text immediately and repaints when the font arrives,
+     so a slow (or missing) font never blanks the page. */
+  font-display: swap;
+}
+
+@theme {
+  /*
+   * The app's sans stack. Cereal sits in front; everything after it is the
+   * fallback chain, ordered so the metrics stay close to Cereal's on each OS.
+   * `--font-sans` is consumed by `body` in globals.css and by `font-sans`.
+   */
+  --font-sans:
+    "Airbnb Cereal VF", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
