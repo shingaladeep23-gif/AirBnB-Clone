@@ -122,6 +122,18 @@ export interface Listing {
   /** "About this place" body copy. */
   description: string;
   highlights: ListingHighlight[];
+  /** Supporting line under the "Guest favourite" laurel card. */
+  guestFavouriteCopy: string;
+  /** The "Get 10% off" card above the booking card. */
+  promo: Promo;
+}
+
+/** The promotional card in the sticky right column. */
+export interface Promo {
+  headline: string;
+  terms: string;
+  ctaLabel: string;
+  icon: string;
 }
 
 /** The icon+title+subtitle rows between the description and amenities. */

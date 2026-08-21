@@ -1,4 +1,5 @@
 import type { Listing, ListingPhoto } from "./types";
+import { PHOTO_FILES } from "./photos";
 
 /**
  * The listing under clone, as a single typed module.
@@ -8,40 +9,31 @@ import type { Listing, ListingPhoto } from "./types";
  * cloning the *rendered result*, not its data-fetching strategy, so the content
  * ships as a typed constant and renders on the server. Same pixels, no spinner.
  *
- * PROVENANCE: every fact below is transcribed from the reference render (see the
- * recon findings on the hive board). Nothing here is invented — if a value is not
- * yet measured it is marked PENDING rather than guessed, so no placeholder can
- * quietly survive into the submission.
+ * PROVENANCE: every string below is transcribed from the reference spec
+ * (`_reference/spec/REFERENCE-SPEC.md`), which Michael measured in a real browser.
+ * Nothing here is invented. Fields the spec does not yet cover are left EMPTY and
+ * marked PENDING rather than guessed — the components render an empty state for
+ * those, so no placeholder can quietly survive into the submission.
  */
 
 /**
- * Gallery photos.
+ * Gallery photos: the reference's own 43 files (see `lib/photos.ts`, generated
+ * from disk), given alt text here where the listing context lives.
  *
- * PENDING ASSET CAPTURE (Michael, T2): the reference serves 71 images from
- * `/assets/images/<uuid>.jpeg`. Those files are not on disk yet, so this array is
- * generated as correctly-shaped slots that render as neutral placeholders. The
- * shape, count and aspect ratios are real; only the bytes are missing.
+ * NOTE: the spec's asset table says 44 listing photos; 43 are actually on disk.
+ * Flagged to Michael rather than silently padded.
  *
- * WHEN THE ASSETS LAND: replace `buildPendingPhotos()` with the real manifest.
- * Keep the same ids where possible so Lightbox deep links don't churn.
+ * PENDING: per-photo room grouping ("Bedroom", "Bathroom", …) is not captured yet.
+ * The Photo Tour groups by room, so T5 will need it. Until then alt text is
+ * positional, which is accurate rather than invented.
  */
-const HERO_PHOTO_COUNT = 5;
-
-function buildPendingPhotos(count: number): ListingPhoto[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `photo-${i + 1}`,
-    // Intentionally a path that 404s until real assets are dropped in — the
-    // gallery renders its placeholder state rather than a fake stock image.
-    src: `/assets/images/photo-${i + 1}.jpeg`,
-    alt:
-      i === 0
-        ? "Romantic Jacuzzi 1BHK Candolim — main view"
-        : `Romantic Jacuzzi 1BHK Candolim — photo ${i + 1}`,
-    // 3:2 is the reference's dominant gallery ratio; corrected per-image at capture.
-    width: 1200,
-    height: 800,
-  }));
-}
+const photos: ListingPhoto[] = PHOTO_FILES.map((file, i) => ({
+  ...file,
+  alt:
+    i === 0
+      ? "Romantic Jacuzzi 1BHK Candolim — main view"
+      : `Romantic Jacuzzi 1BHK Candolim — photo ${i + 1} of ${PHOTO_FILES.length}`,
+}));
 
 export const listing: Listing = {
   id: "mirashya-ug10-candolim",
@@ -59,8 +51,10 @@ export const listing: Listing = {
   rating: 4.95,
   reviewCount: 19,
   isGuestFavourite: true,
+  guestFavouriteCopy:
+    "One of the most loved homes on Airbnb, according to guests",
 
-  photos: buildPendingPhotos(HERO_PHOTO_COUNT),
+  photos,
 
   pricing: {
     total: 28499,
@@ -68,11 +62,17 @@ export const listing: Listing = {
     nights: 5,
   },
 
-  // PENDING: body copy not yet transcribed from the reference (blocked on T2 —
-  // the page never hydrates under automation). Left empty rather than fabricated;
-  // the description section renders nothing until this is filled.
-  description: "",
+  promo: {
+    headline: "Get 10% off your next stay.",
+    terms: "Terms apply",
+    ctaLabel: "Claim",
+    icon: "/assets/images/ui/discount.svg",
+  },
 
+  // PENDING (below the fold, not yet measured — document is 6259px tall and only
+  // the top ~700px has been captured). Left empty rather than fabricated; each
+  // section renders its empty state until the reference screenshots arrive.
+  description: "",
   highlights: [],
   amenities: [],
   reviews: [],
@@ -89,7 +89,7 @@ export const listing: Listing = {
 
   host: {
     name: "",
-    avatar: "",
+    avatar: "/assets/images/avatars/host.jpeg",
     isSuperhost: false,
     hostingDuration: "",
     reviewCount: 0,
@@ -99,8 +99,8 @@ export const listing: Listing = {
 
 /**
  * Formats a price the way the reference does: whole rupees, grouped, no decimals.
- * Centralised so the booking card, the price breakdown and any future surface
- * can never drift apart on formatting.
+ * Centralised so the booking card, the sticky nav's condensed price block and any
+ * future surface can never drift apart on formatting.
  */
 export function formatPrice(amount: number, currency: string): string {
   return new Intl.NumberFormat("en-IN", {

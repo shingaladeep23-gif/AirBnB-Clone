@@ -9,9 +9,11 @@ import {
   toQuerySuffix,
 } from "@/lib/overlay";
 import { SiteHeader } from "./SiteHeader";
+import { SectionNav } from "./SectionNav";
 import { TitleBlock } from "./TitleBlock";
 import { HeroGallery } from "./HeroGallery";
 import { ListingDetails } from "./ListingDetails";
+import { PromoCard } from "./PromoCard";
 import { BookingCard } from "./BookingCard";
 import { ReviewsSection } from "./ReviewsSection";
 import { HostSection } from "./HostSection";
@@ -75,8 +77,11 @@ export function ListingPage({ listing }: { listing: Listing }) {
   return (
     <>
       <SiteHeader />
+      <SectionNav listing={listing} />
 
-      <main id="main" className="mx-auto w-full max-w-content px-10 pb-16">
+      {/* No horizontal padding: the content column IS 1120px wide (x387..x1507
+          at the 1910 canonical viewport), not 1120px minus gutters. */}
+      <main id="main" className="mx-auto w-full max-w-content pb-16">
         <TitleBlock listing={listing} />
 
         <HeroGallery
@@ -85,18 +90,23 @@ export function ListingPage({ listing }: { listing: Listing }) {
           onPhotoClick={openLightbox}
         />
 
-        {/* Two-column body: content column + sticky booking card. */}
-        <div className="flex gap-20 pt-10">
-          <div className="w-content-col shrink-0">
+        {/* Two-column body. Widths are tokens: 648 + 100 gap + 372 = 1120. */}
+        <div className="flex gap-col-gap">
+          <div className="w-content-col-w shrink-0">
             <ListingDetails listing={listing} />
+            <ReviewsSection listing={listing} />
+            <HostSection host={listing.host} />
           </div>
-          <div className="flex-1">
-            <BookingCard listing={listing} />
-          </div>
-        </div>
 
-        <ReviewsSection listing={listing} />
-        <HostSection host={listing.host} />
+          {/* Sticky right column. Offset by header + section nav so it never
+              slides under the chrome. */}
+          <aside className="w-booking-card-w shrink-0">
+            <div className="sticky top-[calc(var(--spacing-nav-offset)+24px)] flex flex-col gap-4 pt-8">
+              <PromoCard promo={listing.promo} />
+              <BookingCard listing={listing} />
+            </div>
+          </aside>
+        </div>
       </main>
 
       <SiteFooter />

@@ -69,6 +69,8 @@
    * TYPE SCALE — paired size/line-height, measured off the reference at 1910px.
    * Airbnb's listing page runs a tight scale; these are the only sizes in use.
    * ------------------------------------------------------------------------ */
+  --text-2xs: 0.625rem; /* 10px — uppercase field labels (CHECK-IN / CHECKOUT) */
+  --text-2xs--line-height: 0.875rem; /* 14px */
   --text-xs: 0.75rem; /* 12px — legal, fine print */
   --text-xs--line-height: 1rem; /* 16px */
   --text-sm: 0.875rem; /* 14px — meta, captions, nav */
@@ -124,10 +126,20 @@
    * geometry are tokenised because several views need the same numbers.
    * Desktop-only: there are deliberately no breakpoint tokens here.
    * ------------------------------------------------------------------------ */
-  --container-content: 1120px;
-  --spacing-header-h: 80px; /* sticky header height */
-  --spacing-gallery-gap: 8px; /* gutter between hero gallery tiles */
-  --spacing-booking-card-w: 372px; /* right-hand booking card width */
+  /* Canonical viewport is 1910x1000 (body 1895). Values marked EXACT come from
+     getBoundingClientRect on the reference; APPROX ones are screenshot-derived
+     (±5px) and are expected to be corrected by pixel diff. */
+  --container-content: 1120px; /* EXACT-ish: centred, spans x387..x1507 */
+  --spacing-header-h: 88px; /* EXACT: 88px content + 1px hairline = 89px bar */
+  --spacing-header-inset: 80px; /* EXACT: inner container inset each side */
+  --spacing-search-pill-w: 404px; /* EXACT: x746, 404x48 */
+  --spacing-search-pill-h: 48px; /* EXACT */
+  --spacing-section-nav-h: 64px; /* EXACT: sticky anchor bar */
+  --spacing-nav-offset: 153px; /* header 89 + section nav 64 — anchor scroll offset */
+  --spacing-gallery-h: 490px; /* APPROX: y174 -> y665 */
+  --spacing-gallery-gap: 8px; /* APPROX: gutter between hero tiles */
+  --spacing-col-gap: 100px; /* derived: 1120 - 648 - 372 */
+  --spacing-booking-card-w: 372px; /* right-hand sticky column width */
   --spacing-content-col-w: 648px; /* left-hand content column width */
 
   /* --------------------------------------------------------------------------
