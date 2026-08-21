@@ -1,79 +1,119 @@
 ---
 name: parity-measurement
-description: Measure the Airbnb reference site and turn the numbers into design tokens or component values. Use when you need exact geometry, colour, or type metrics from the reference, or when a view "looks off" and you need to find out by how much.
+description: How to establish and verify pixel parity on this project — where reference truth lives, and how to measure our own build against it. Use when you need exact geometry, colour, or type metrics, or when a view "looks off" and you need to find out by how much.
 ---
 
-# Measuring the reference
+# Measuring parity
 
-Pixel parity is graded by side-by-side comparison. This skill is the repeatable way
-to get **numbers** instead of impressions.
+Pixel parity is graded by side-by-side comparison. This skill is how you get
+**numbers** instead of impressions — and, just as importantly, how you avoid
+wasting a budget on a measurement route that cannot work.
 
-## Before you start: how the reference can and cannot be reached
+## 1. You cannot measure the reference. Don't try.
 
-The reference (https://airbnb-clone-umber-two.vercel.app) is behind **Vercel Attack
-Challenge Mode + BotID**.
+The reference site is defended, proven three separate ways:
 
-| Method | Result |
+| Attempted | Result |
 |---|---|
 | `curl`, `Invoke-WebRequest` | 429 |
 | Playwright headless | 429 |
-| Playwright headed + persistent profile | 429; app never hydrates |
-| Claude-in-Chrome extension (real browser session) | ✅ works |
+| Playwright headed + persistent profile | 429; page never renders |
+| Claude-in-Chrome extension (real session) | worked once; now disconnected |
 
-**Do not re-attempt the failing methods.** This was established through real
-debugging time. If the Chrome extension isn't connected, ask for it rather than
-burning turns, and fall back to previously captured measurements.
+And even with a live session, **the reference neuters `getComputedStyle`** — it
+returns a `CSSStyleDeclaration` with `length === 0` and every property empty,
+verified in both an isolated world and the page's main world. Colours, font sizes,
+spacing, borders and transition timings are simply **not readable by anyone**.
 
-Note the site is client-rendered: initial HTML is a ~2KB shell and content hydrates
-from `/api/content`. Anything that doesn't execute JS sees an empty page even when
-it gets past the challenge.
+What still worked when the extension was live: geometry
+(`getBoundingClientRect`), text content, attributes (`alt`, `aria-label`, `role`,
+`href`), `img.currentSrc`, `document.fonts`, and screenshots. That is exactly why
+the spec files contain precise geometry but no colour values.
 
-## The measurement recipe
+This is a deliberate anti-scraping defence matching PlayPower's plagiarism warning.
+**The intended workflow is: read the spec, rebuild originally, verify our own
+build.** Treat the constraint as a design input, not an obstacle to route around.
 
-Run this in the browser console (via the JS tool) against **both** the reference and
-`localhost:3000`, then diff:
+## 2. Reference truth lives in two files
+
+- `_reference/spec/REFERENCE-SPEC.md` — header, content column, sticky section nav,
+  hero gallery, listing copy, asset inventory, confirmed behaviours.
+- `_reference/spec/BELOW-FOLD-SPEC.md` — below-the-fold section anatomy and order.
+
+Precision tags, and what each obliges you to do:
+
+| Tag | Means | Your obligation |
+|---|---|---|
+| `EXACT` | from `getBoundingClientRect()` | Match to the pixel. A deviation is a defect. |
+| `APPROX` | screenshot-derived, ±5px | Good starting point; expect correction. |
+| `EVIDENCE` | derived from the captured assets | Reliable; the assets are on disk. |
+| `CONVENTION` | inferred from standard Airbnb anatomy | Reasonable default; open to challenge. |
+
+Do not re-derive these numbers, and do not silently substitute your own.
+
+Key anchors worth memorising: canonical viewport **1910×1000 DPR 1**, body width
+1895, **document height 6259px**, content column **1120px centred (x387.5–x1507.5)**,
+header bar **89px** (88 content + 1px hairline) inset **80px** each side.
+
+## 3. Measure OUR build — localhost is not defended
+
+```bash
+node _reference/tools/qa-shot.mjs --url http://localhost:3000 --label listing
+```
+
+Captures fold + full-page screenshots, console errors, failed requests, geometry,
+heading order and a11y counts.
+
+For targeted checks, script it and diff against the spec table:
 
 ```js
 const el = document.querySelector(SELECTOR);
 const r = el.getBoundingClientRect();
-const s = getComputedStyle(el);
+const s = getComputedStyle(el);            // works fine on localhost
 JSON.stringify({
-  box: { w: r.width, h: r.height, x: r.x, y: r.y },
-  type: {
-    family: s.fontFamily, size: s.fontSize, weight: s.fontWeight,
-    line: s.lineHeight, spacing: s.letterSpacing,
-  },
+  box:    { x: r.x, y: r.y, w: r.width, h: r.height },
+  type:   { family: s.fontFamily, size: s.fontSize, weight: s.fontWeight,
+            line: s.lineHeight, spacing: s.letterSpacing },
   colour: { fg: s.color, bg: s.backgroundColor },
-  space: { pad: s.padding, margin: s.margin, gap: s.gap },
-  shape: { radius: s.borderRadius, border: s.border, shadow: s.boxShadow },
+  space:  { pad: s.padding, margin: s.margin, gap: s.gap },
+  shape:  { radius: s.borderRadius, border: s.border, shadow: s.boxShadow },
 }, null, 2);
 ```
 
-Always measure at a **1920×1080 desktop viewport**. Known baseline: the reference
-page is ≈**6259px** tall at a 1910px viewport — if local total height is far off,
-a line-height or section-spacing token is wrong, and that's the fastest thing to
-check first.
+Always measure at 1910×1000 DPR 1. Measuring at another viewport produces numbers
+that cannot be compared to the spec.
 
-## Turning a measurement into a token
+**Document height is your best global signal.** Ours vs 6259px catches
+systematically wrong section padding faster than auditing sections one by one.
 
-1. Ask whether the value is **semantic** (reused across views) or **local** (used
-   once). Semantic → token. Local → still prefer a token if it's a colour, radius,
-   shadow or type size; those always recur.
+## 4. Colour and type are judgement here, and you must say so
+
+Because `getComputedStyle` is blocked on the reference, **every colour, font size,
+weight and line-height in `app/styles/tokens.css` is a reconstruction** of Airbnb's
+design system, matched visually against screenshots. It is not measured.
+
+When you report, keep the two categories separate:
+- "**Measured deviation** — header is 80px, spec says 89px (EXACT)." Objective.
+- "**Visual judgement** — this grey reads lighter than the screenshot." Subjective.
+
+Conflating them makes a report impossible to act on.
+
+## 5. Turning a value into a token
+
+1. Check it doesn't already exist under another name.
 2. Name it for its **role**, not its value: `--color-fg-muted`, not `--color-grey-6`.
 3. Add it to `app/styles/tokens.css` (Tailwind v4 is CSS-first — that `@theme`
-   block IS the config) with a comment saying what it represents and where it came
-   from.
-4. Use the generated utility. Never inline the raw value.
+   block *is* the config) with a comment recording what it represents and its
+   precision tag.
+4. Use the generated utility — never inline the raw value.
 
-## Colour gotcha
+**Then verify the utility actually emitted CSS.** Tailwind emits nothing for an
+unknown utility and the build still passes: `w-content-col` when the token is
+`--spacing-content-col-w` (utility: `w-content-col-w`) silently collapses a column
+with no error. Grep the built CSS.
 
-`getComputedStyle` returns `rgb()`. Convert before comparing to token hex.
-Airbnb's greys cluster tightly — `#222222`, `#6A6A6A`, `#717171`, `#B0B0B0` — so
-"grey text" is never a precise enough observation. Get the exact value.
+## 6. Originality guard
 
-## Originality guard
-
-Measuring is allowed and expected. **Copying is not.** Never lift the reference's
-CSS rules, generated class names (`_Ugwssa`, `_HaGluF`, …), or bundle output into
-this repo. Record the measured target as plain numbers, then write original code
-that hits those numbers.
+Measuring our build is expected. Copying theirs is not. Never lift the reference's
+CSS, generated class names (`_Ugwssa`, `_HaGluF`, …), or bundle output. Record the
+target as plain numbers, then write original code that hits them.

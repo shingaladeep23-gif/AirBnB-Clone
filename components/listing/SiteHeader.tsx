@@ -94,7 +94,10 @@ export function SiteHeader() {
         </div>
 
         {/* Right cluster — pushed to the far edge of the inset container. */}
-        <nav className="ml-auto flex h-11 items-center gap-1">
+        {/* gap-2 (8px), not 4px: the measured cluster is x1594..x1815 with
+            'Become a host' 125 wide ending at 1719, lang at 1727 and menu at
+            1775 — i.e. two 8px gaps. A 4px gap puts the lang button at 1731. */}
+        <nav className="ml-auto flex h-11 items-center gap-2">
           <a
             href="/host"
             className="flex h-11 items-center rounded-pill px-3 text-sm font-medium text-fg transition-colors duration-fast hover:bg-surface-hover"

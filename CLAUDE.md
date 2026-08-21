@@ -49,10 +49,24 @@ Path alias: `@/*` → repo root.
    dimensions in components. If a token is missing, add it to `app/styles/tokens.css`
    first. Arbitrary utilities (`text-[26px]`) mean a token is missing.
 
-4. **Never fabricate content.** Several fields in `lib/listing.ts` are marked
-   PENDING because assets and copy are still being captured. Render the empty state
-   rather than inventing reviews, host names, or stock photos. A visibly incomplete
-   section is recoverable; fabricated content that ships is not.
+4. **Representative copy, disclosed — not empty shells, and not fake assets.**
+   *(Ruling by Michael, 21 Aug 2026. This replaces the earlier "never fabricate
+   content / render the empty state" rule, which lost too much on the parity rubric.)*
+
+   The reference's text could not be captured — it blocks automated access — so the
+   text fields in `lib/listing.ts` are **original copy written to fit this listing**,
+   not transcribed. That is fine, on four conditions:
+
+   - **All copy lives in `lib/listing.ts`**, never inline in JSX. The real strings
+     will be harvested in one pass when the browser extension returns, and that must
+     be a data edit, not a component rewrite.
+   - **Keep a `PENDING` comment next to every invented field**, so what needs
+     swapping is obvious at a glance.
+   - **Disclose it in the README** — which fields are representative and why. This is
+     a documented decision under a hard constraint, so state it plainly.
+   - **Images are exempt — no stock photos, ever.** All 43 listing photos, the
+     avatars, chips and similar-listing images are the reference's own, captured to
+     `public/assets/`. Never substitute a placeholder or stock image for a real one.
 
 5. **Local git only.** Do not push to a public GitHub repo.
 
@@ -69,12 +83,15 @@ Path alias: `@/*` → repo root.
 
 The reference is behind **Vercel Attack Challenge Mode + BotID**. `curl`,
 PowerShell and Playwright (headless *and* headed with a persistent profile) all get
-**429**, and under Playwright the app never hydrates. The only working path is the
+**429**, and under Playwright the page never renders. The only working path is the
 **Claude-in-Chrome extension** against a real browser session. Do not burn time
 re-attempting the failing methods.
 
-The site is client-rendered — initial HTML is a ~2KB shell that hydrates from
-`/api/content` — so anything that doesn't execute JS sees an empty page regardless.
+The initial HTML is a ~2KB shell that requests `/api/content` with
+`accept: text/html` and `document.write`s the response — so the reference is
+**server-rendered HTML behind one gated endpoint**, not a JSON-hydrating SPA.
+There is no content API to mine; anything that doesn't execute JS sees an empty
+page regardless.
 
 ## AI configs
 

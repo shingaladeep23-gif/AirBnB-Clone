@@ -16,7 +16,10 @@ import { ListingDetails } from "./ListingDetails";
 import { PromoCard } from "./PromoCard";
 import { BookingCard } from "./BookingCard";
 import { ReviewsSection } from "./ReviewsSection";
-import { HostSection } from "./HostSection";
+import { LocationSection } from "./LocationSection";
+import { MeetYourHost } from "./MeetYourHost";
+import { ThingsToKnow } from "./ThingsToKnow";
+import { SimilarListings } from "./SimilarListings";
 import { SiteFooter } from "./SiteFooter";
 import { PhotoTour } from "@/components/photo-tour/PhotoTour";
 import { Lightbox } from "@/components/lightbox/Lightbox";
@@ -90,16 +93,20 @@ export function ListingPage({ listing }: { listing: Listing }) {
           onPhotoClick={openLightbox}
         />
 
-        {/* Two-column body. Widths are tokens: 648 + 100 gap + 372 = 1120. */}
+        {/*
+          Two-column body — BELOW-FOLD-SPEC sections 3-9 only.
+          Widths are tokens: 675 + 75 gap + 370 = 1120.
+
+          The sticky right stack ENDS here, after the calendar. Everything below
+          runs the FULL content column, which is what makes the reviews grid
+          two-across. That switch is structural, so it lives in the composition
+          root rather than being implied inside a section.
+        */}
         <div className="flex gap-col-gap">
           <div className="w-content-col-w shrink-0">
             <ListingDetails listing={listing} />
-            <ReviewsSection listing={listing} />
-            <HostSection host={listing.host} />
           </div>
 
-          {/* Sticky right column. Offset by header + section nav so it never
-              slides under the chrome. */}
           <aside className="w-booking-card-w shrink-0">
             <div className="sticky top-[calc(var(--spacing-nav-offset)+24px)] flex flex-col gap-4 pt-8">
               <PromoCard promo={listing.promo} />
@@ -107,6 +114,13 @@ export function ListingPage({ listing }: { listing: Listing }) {
             </div>
           </aside>
         </div>
+
+        {/* Full-width sections — BELOW-FOLD-SPEC 10-14. */}
+        <ReviewsSection listing={listing} />
+        <LocationSection location={listing.locationInfo} />
+        <MeetYourHost host={listing.host} coHosts={listing.coHosts} />
+        <ThingsToKnow groups={listing.thingsToKnow} />
+        <SimilarListings listings={listing.similarListings} />
       </main>
 
       <SiteFooter />

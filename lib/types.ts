@@ -126,6 +126,16 @@ export interface Listing {
   guestFavouriteCopy: string;
   /** The "Get 10% off" card above the booking card. */
   promo: Promo;
+  /** Exactly 3, from avatars/co1-3.jpg. */
+  coHosts: CoHost[];
+  /** Exactly 10, from chips/*.png. */
+  reviewTopics: ReviewTopic[];
+  /** Exactly 6, from similar/s1-6.jpeg. */
+  similarListings: SimilarListing[];
+  /** Three columns: house rules, safety, cancellation. */
+  thingsToKnow: ThingsToKnowGroup[];
+  /** "Where you'll be" heading + neighbourhood blurb. */
+  locationInfo: LocationInfo;
 }
 
 /** The promotional card in the sticky right column. */
@@ -134,6 +144,49 @@ export interface Promo {
   terms: string;
   ctaLabel: string;
   icon: string;
+}
+
+/** A co-host shown inside "Meet your host". Exactly 3 exist (co1-3.jpg). */
+export interface CoHost {
+  id: string;
+  name: string;
+  avatar: string;
+}
+
+/**
+ * A review-topic chip (BELOW-FOLD-SPEC §10c). Exactly 10 exist; the illustration
+ * and label are evidence-backed (decoded from the chip filenames), the quote is
+ * authored copy.
+ */
+export interface ReviewTopic {
+  id: string;
+  label: string;
+  icon: string;
+  quote: string;
+}
+
+/** A card in the bottom "Similar listings" rail. Exactly 6 assets exist. */
+export interface SimilarListing {
+  id: string;
+  image: string;
+  title: string;
+  propertyType: string;
+  price: number;
+  nights: number;
+  rating: number;
+}
+
+/** One column of the "Things to know" block. */
+export interface ThingsToKnowGroup {
+  id: string;
+  heading: string;
+  items: string[];
+}
+
+/** "Where you'll be" — the location block. */
+export interface LocationInfo {
+  heading: string;
+  blurb: string;
 }
 
 /** The icon+title+subtitle rows between the description and amenities. */

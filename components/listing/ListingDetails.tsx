@@ -1,79 +1,55 @@
 import type { Listing } from "@/lib/types";
 import { formatCapacity } from "@/lib/listing";
 import { GuestFavouriteCard } from "./GuestFavouriteCard";
+import { HostRow } from "./HostRow";
+import { Highlights } from "./Highlights";
+import { Description } from "./Description";
+import { WhereYouSleep } from "./WhereYouSleep";
+import { Amenities } from "./Amenities";
+import { Calendar } from "./Calendar";
 
 /**
- * Left content column.
+ * The LEFT COLUMN of the two-column body — BELOW-FOLD-SPEC sections 3 through 9.
  *
- * Order follows the reference spec's document-order list: property type +
- * capacity, then the Guest-favourite card, then the below-fold sections.
+ * The sticky right stack ends after the calendar; everything from Reviews down
+ * runs the full 1120px content column and is rendered by ListingPage, not here.
+ * That transition is structural, not cosmetic — it's what makes the reviews grid
+ * two-across.
  *
- * The `amenities` and `location` section ids are load-bearing — the sticky
- * section nav anchors to them.
- *
- * BELOW THE FOLD IS NOT MEASURED. The reference document is 6259px tall and only
- * the top ~700px has been captured, so the sections below render their headings
- * and structure but not invented content. Where the spec gives no copy, the
- * section renders empty rather than fabricating amenities or descriptions.
+ * `divide-y` supplies the hairline between sections so no section has to know
+ * whether it's first or last.
  */
 export function ListingDetails({ listing }: { listing: Listing }) {
   return (
-    <div className="flex flex-col">
-      <section className="border-b border-border-subtle pb-6 pt-8">
+    <div className="flex flex-col divide-y divide-border-subtle">
+      {/* §3 — Overview */}
+      <section className="pb-6 pt-8">
         <h2 className="text-xl font-semibold text-fg">{listing.propertyType}</h2>
         <p className="pt-1 text-base text-fg">
           {formatCapacity(listing.capacity)}
         </p>
+        <div className="pt-6">
+          <GuestFavouriteCard listing={listing} />
+        </div>
       </section>
 
-      <div className="py-6">
-        <GuestFavouriteCard listing={listing} />
-      </div>
+      {/* §4 */}
+      <HostRow host={listing.host} />
 
-      {/* PENDING: "About this place" copy is not captured yet. */}
-      {listing.description && (
-        <section className="border-t border-border-subtle py-8">
-          <h2 className="text-xl font-semibold text-fg">About this place</h2>
-          <p className="whitespace-pre-line pt-4 text-base text-fg">
-            {listing.description}
-          </p>
-        </section>
-      )}
+      {/* §5 */}
+      <Highlights highlights={listing.highlights} />
 
-      <section
-        id="amenities"
-        className="scroll-mt-nav-offset border-t border-border-subtle py-8"
-      >
-        <h2 className="text-xl font-semibold text-fg">
-          What this place offers
-        </h2>
-        {/* PENDING: the amenity list is not captured. Rendering the heading keeps
-            the sticky-nav anchor valid without inventing amenities. */}
-        {listing.amenities.length > 0 && (
-          <ul className="grid grid-cols-2 gap-4 pt-6">
-            {listing.amenities.map((amenity) => (
-              <li
-                key={amenity.id}
-                className={
-                  amenity.available
-                    ? "text-base text-fg"
-                    : "text-base text-subtle line-through"
-                }
-              >
-                {amenity.label}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {/* §6 */}
+      <Description description={listing.description} />
 
-      <section
-        id="location"
-        className="scroll-mt-nav-offset border-t border-border-subtle py-8"
-      >
-        <h2 className="text-xl font-semibold text-fg">Where you&rsquo;ll be</h2>
-        <p className="pt-2 text-base text-fg">{listing.location}</p>
-      </section>
+      {/* §7 */}
+      <WhereYouSleep arrangements={listing.sleepingArrangements} />
+
+      {/* §8 — id="amenities" */}
+      <Amenities amenities={listing.amenities} />
+
+      {/* §9 — swing block; see the component's note */}
+      <Calendar listing={listing} />
     </div>
   );
 }

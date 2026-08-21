@@ -83,8 +83,10 @@
   --text-xl--line-height: 1.625rem; /* 26px */
   --text-2xl: 1.625rem; /* 26px — h1 listing title */
   --text-2xl--line-height: 1.875rem; /* 30px */
-  --text-3xl: 2rem; /* 32px — rating hero numerals */
+  --text-3xl: 2rem; /* 32px — large numerals */
   --text-3xl--line-height: 2.25rem; /* 36px */
+  --text-hero: 5.75rem; /* 92px — the huge "4.95" in the reviews hero */
+  --text-hero--line-height: 1;
 
   /* --------------------------------------------------------------------------
    * FONT WEIGHTS — Cereal VF is a variable font (200–900). Airbnb leans on
@@ -138,9 +140,14 @@
   --spacing-nav-offset: 153px; /* header 89 + section nav 64 — anchor scroll offset */
   --spacing-gallery-h: 490px; /* APPROX: y174 -> y665 */
   --spacing-gallery-gap: 8px; /* APPROX: gutter between hero tiles */
-  --spacing-col-gap: 100px; /* derived: 1120 - 648 - 372 */
-  --spacing-booking-card-w: 372px; /* right-hand sticky column width */
-  --spacing-content-col-w: 648px; /* left-hand content column width */
+  /* Two-column body split (CONVENTION, per BELOW-FOLD-SPEC §2): 675 + 75 + 370
+     = 1120. The 1120 total is measured; the split is not. Sections 3-9 sit in
+     the left column; from Reviews down, sections run the full 1120. */
+  --spacing-col-gap: 75px;
+  --spacing-booking-card-w: 370px; /* right-hand sticky column width */
+  --spacing-content-col-w: 675px; /* left-hand content column width */
+  --spacing-map-h: 480px; /* "Where you'll be" map block, 1120x480 */
+  --spacing-similar-card-w: 254px; /* 4x254 + 3x32 gutters = 1112, fits 1120 */
 
   /* --------------------------------------------------------------------------
    * MOTION — the reference is restrained: short, ease-out transitions.

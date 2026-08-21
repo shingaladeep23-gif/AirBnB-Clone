@@ -80,9 +80,12 @@ export function SectionNav({ listing }: { listing: Listing }) {
             </p>
           </div>
 
+          {/* "4.95 · 19 reviews", not the captured "4.95 ·" — six glyphs cannot
+              fill the measured 127px box, so the capture was truncated.
+              (Michael's ruling, 21 Aug.) */}
           <p className="flex items-center gap-1 text-xs text-fg">
             <StarIcon size={10} />
-            {listing.rating} ·
+            {listing.rating} · {listing.reviewCount} reviews
           </p>
 
           <button
