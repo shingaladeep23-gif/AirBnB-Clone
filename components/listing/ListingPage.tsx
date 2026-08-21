@@ -132,6 +132,7 @@ export function ListingPage({ listing }: { listing: Listing }) {
           listing={listing}
           onClose={closeOverlay}
           onPhotoSelect={openLightbox}
+          isTopmost={overlay.kind === "photo-tour"}
         />
       )}
 
