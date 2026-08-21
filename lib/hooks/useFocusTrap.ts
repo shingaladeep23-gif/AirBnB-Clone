@@ -88,12 +88,23 @@ export function useFocusTrap<T extends HTMLElement>() {
     return () => {
       document.removeEventListener("keydown", onKeyDown);
 
-      // (3) Return focus to the trigger. Guarded because the trigger can be gone
-      // by now (e.g. the gallery unmounted), in which case forcing focus would
-      // throw or land somewhere arbitrary.
-      if (trigger && document.contains(trigger)) {
-        trigger.focus();
-      }
+      /*
+        (3) Return focus to the trigger.
+
+        Deferred a frame on purpose. Layers beneath an overlay are marked
+        `inert`, and when this overlay closes React clears that in the same
+        commit — but focus() called synchronously here can still run while the
+        trigger's ancestor is inert, and focusing inside an inert subtree is a
+        no-op. One frame later the attribute is gone and the focus lands.
+
+        Guarded because the trigger can be gone by then (e.g. its section
+        unmounted), in which case forcing focus would land somewhere arbitrary.
+      */
+      requestAnimationFrame(() => {
+        if (trigger && document.contains(trigger)) {
+          trigger.focus();
+        }
+      });
     };
   }, []);
 

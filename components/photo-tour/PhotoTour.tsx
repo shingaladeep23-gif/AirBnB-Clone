@@ -124,6 +124,10 @@ export function PhotoTour({
       // tabIndex allows the focus trap to fall back to the dialog itself when
       // there is nothing focusable inside yet.
       tabIndex={-1}
+      // Inert while the Lightbox is stacked above: the tour stays mounted so
+      // closing the Lightbox reveals it again, but it must not remain reachable
+      // by rotor/virtual-cursor navigation, which ignore focus traps.
+      inert={!isTopmost || undefined}
       className="fixed inset-0 z-40 overflow-y-auto bg-surface"
     >
       <div className="sticky top-0 z-10 bg-surface">

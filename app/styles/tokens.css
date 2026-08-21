@@ -48,14 +48,19 @@
   /* --------------------------------------------------------------------------
    * SURFACE — page and component backgrounds.
    * `surface-sunken` is the grey wash behind inset panels and image placeholders.
-   * `surface-overlay` is the near-black backdrop the Photo Tour / Lightbox use.
+   * `surface-overlay` is the opaque black backdrop behind the Lightbox.
    * ------------------------------------------------------------------------ */
   --color-surface: #ffffff;
   --color-surface-sunken: #f7f7f7;
   --color-surface-raised: #ffffff;
   --color-surface-hover: #f7f7f7;
   --color-surface-inverse: #000000;
-  --color-surface-overlay: rgba(0, 0, 0, 0.92);
+  /* FULLY OPAQUE, deliberately. At 0.92 the Lightbox let the Photo Tour's white
+     surface show through: both layers' Share/Save controls rendered side by side
+     and tour content bled through around the photo. Airbnb's viewer is solid
+     black. The Lightbox is the only consumer, so there is no translucent use to
+     preserve — if one ever appears, split the token rather than reopening this. */
+  --color-surface-overlay: #000000;
 
   /* --------------------------------------------------------------------------
    * BORDER — hairlines. Airbnb uses two weights: a visible divider (#DDDDDD)

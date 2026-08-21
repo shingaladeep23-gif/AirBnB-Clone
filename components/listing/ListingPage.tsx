@@ -95,10 +95,23 @@ export function ListingPage({ listing }: { listing: Listing }) {
     [navigateToOverlay],
   );
 
+  const overlayOpen = overlay.kind !== "none";
+
   return (
     <>
-      <SiteHeader />
-      <SectionNav listing={listing} />
+      {/*
+        `inert` on everything beneath an open overlay.
+
+        A focus trap only stops Tab. Screen-reader virtual-cursor and rotor
+        navigation walk the ACCESSIBILITY TREE and ignore focus traps entirely —
+        without this, a user inside the Lightbox could still reach the listing
+        page's Share/Save. `inert` removes the subtree from the a11y tree, from
+        hit-testing and from the tab order in one go, which is the only way to
+        make "behind a modal" actually mean inaccessible.
+      */}
+      <div inert={overlayOpen || undefined}>
+        <SiteHeader />
+        <SectionNav listing={listing} />
 
       {/* No horizontal padding: the content column IS 1120px wide (x387..x1507
           at the 1910 canonical viewport), not 1120px minus gutters. */}
@@ -150,10 +163,11 @@ export function ListingPage({ listing }: { listing: Listing }) {
         <LocationSection location={listing.locationInfo} />
         <MeetYourHost host={listing.host} coHosts={listing.coHosts} />
         <ThingsToKnow groups={listing.thingsToKnow} />
-        <SimilarListings listings={listing.similarListings} />
-      </main>
+          <SimilarListings listings={listing.similarListings} />
+        </main>
 
-      <SiteFooter />
+        <SiteFooter />
+      </div>
 
       {/* The tour stays mounted under the lightbox so closing the lightbox
           returns to it — matching the reference's layering. */}
