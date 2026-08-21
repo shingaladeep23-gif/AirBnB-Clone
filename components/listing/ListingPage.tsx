@@ -70,12 +70,30 @@ export function ListingPage({ listing }: { listing: Listing }) {
     [navigateToOverlay],
   );
 
-  // Closing mirrors the browser's own back gesture, so the two can't disagree.
-  const closeOverlay = useCallback(() => router.back(), [router]);
+  /*
+    Closing navigates to an explicit target state rather than calling
+    router.back().
 
-  // Closing the Lightbox should reveal the Photo Tour underneath rather than
-  // dismissing both — history handles that, since the tour is its own entry.
-  const closeLightbox = useCallback(() => router.back(), [router]);
+    back() assumes the previous history entry is the one we pushed, and that is
+    not guaranteed. Concretely: the skip link is a plain `<a href="#main">`, a
+    NATIVE hash navigation the Next router never owned. Open the tour after using
+    it and back() lands on `/#main`, where useSearchParams does not resync — so
+    the overlay stayed mounted and the page stayed scroll-locked with no way out.
+
+    Navigating to the target state is deterministic regardless of how the
+    surrounding history entries were created, and browser back/forward still work
+    because the overlay is entirely URL-derived either way.
+  */
+  const closeOverlay = useCallback(
+    () => navigateToOverlay({ kind: "none" }),
+    [navigateToOverlay],
+  );
+
+  // Closing the Lightbox drops back to the tour, not all the way to the listing.
+  const closeLightbox = useCallback(
+    () => navigateToOverlay({ kind: "photo-tour" }),
+    [navigateToOverlay],
+  );
 
   return (
     <>
@@ -84,7 +102,19 @@ export function ListingPage({ listing }: { listing: Listing }) {
 
       {/* No horizontal padding: the content column IS 1120px wide (x387..x1507
           at the 1910 canonical viewport), not 1120px minus gutters. */}
-      <main id="main" className="mx-auto w-full max-w-content pb-16">
+      {/*
+        tabIndex={-1} is what makes the skip link actually work. A fragment link
+        only MOVES FOCUS if its target is focusable; without it the page scrolls
+        but activeElement stays on <body>, so the next Tab restarts at the top of
+        the header and walks the user back through all 9 header controls — the
+        exact thing a skip link exists to prevent. -1 keeps it programmatically
+        focusable without adding a tab stop.
+      */}
+      <main
+        id="main"
+        tabIndex={-1}
+        className="mx-auto w-full max-w-content pb-16 focus:outline-none"
+      >
         <TitleBlock listing={listing} />
 
         <HeroGallery
