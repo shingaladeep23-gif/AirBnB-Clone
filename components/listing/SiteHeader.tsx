@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
   GlobeIcon,
   LogoMark,
@@ -34,14 +35,14 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-30 border-b border-border-subtle bg-surface">
       <div className="relative mx-auto flex h-header-h items-center px-header-inset">
-        <a
+        <Link
           href="/"
           aria-label="Airbnb homepage"
           className="flex h-8 w-[103px] shrink-0 items-center gap-1 text-rausch"
         >
           <LogoMark size={32} />
           <span className="text-xl font-bold tracking-tight">airbnb</span>
-        </a>
+        </Link>
 
         {/*
           Search pill — absolutely centred on the bar.
