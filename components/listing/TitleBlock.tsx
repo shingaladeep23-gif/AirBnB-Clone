@@ -10,7 +10,10 @@ import { HeartIcon, ShareIcon } from "@/components/ui/icons";
  */
 export function TitleBlock({ listing }: { listing: Listing }) {
   return (
-    <div className="flex items-center justify-between pb-3.5 pt-7">
+    // Fixed 85px rather than padding: the header ends at y89 and the gallery
+    // starts at the measured y174, so this row's height is exactly the gap.
+    // Deriving it from padding + line-height left it 11px short.
+    <div className="flex h-title-row-h items-center justify-between">
       <h1 className="text-2xl font-semibold text-fg">{listing.title}</h1>
 
       <div className="flex items-center gap-1">

@@ -43,14 +43,25 @@ export function SiteHeader() {
           <span className="text-xl font-bold tracking-tight">airbnb</span>
         </a>
 
-        {/* Search pill — absolutely centred on the bar. */}
+        {/*
+          Search pill — absolutely centred on the bar.
+
+          The outline is a RING, not a border: a border would shrink the inner box
+          to 46px and the measured segment buttons are 48px, the pill's full
+          height. Rings don't participate in layout.
+
+          Horizontal budget across the measured 404px, left to right:
+            9 pad + 149 Anywhere + 1 sep + 88 Anytime + 1 sep + 106 Add guests
+            + 8 gap + 32 circle + 10 pad = 404
+          which lands the segments at x755 / x905 / x994 and the circle at x1108.
+        */}
         <div
           role="search"
-          className="absolute left-1/2 flex h-search-pill-h w-search-pill-w -translate-x-1/2 items-center rounded-pill border border-border bg-surface shadow-control"
+          className="absolute left-1/2 flex h-search-pill-h w-search-pill-w -translate-x-1/2 items-center rounded-pill bg-surface pl-[9px] pr-2.5 shadow-control ring-1 ring-border"
         >
           <button
             type="button"
-            className="flex h-full w-[149px] items-center gap-2 rounded-pill pl-[9px] text-left"
+            className="flex h-full w-[149px] items-center gap-2 rounded-pill text-left"
           >
             <Image
               src="/assets/images/ui/searchbar-house.png"
@@ -62,7 +73,7 @@ export function SiteHeader() {
             <span className="text-sm font-medium text-fg">Anywhere</span>
           </button>
 
-          <span aria-hidden="true" className="h-6 w-px bg-border" />
+          <span aria-hidden="true" className="h-6 w-px shrink-0 bg-border" />
 
           <button
             type="button"
@@ -71,7 +82,7 @@ export function SiteHeader() {
             <span className="text-sm font-medium text-fg">Anytime</span>
           </button>
 
-          <span aria-hidden="true" className="h-6 w-px bg-border" />
+          <span aria-hidden="true" className="h-6 w-px shrink-0 bg-border" />
 
           {/* "Add guests" and the pink circle are SIBLINGS, not nested. The
               reference has a distinct button[aria-label="Search"] at x1108
@@ -81,13 +92,16 @@ export function SiteHeader() {
             type="button"
             className="flex h-full w-[106px] items-center rounded-pill px-4 text-left"
           >
-            <span className="text-sm font-medium text-subtle">Add guests</span>
+            {/* nowrap: at the measured 106px this wraps to two lines otherwise. */}
+            <span className="whitespace-nowrap text-sm font-medium text-subtle">
+              Add guests
+            </span>
           </button>
 
           <button
             type="button"
             aria-label="Search"
-            className="ml-auto mr-2.5 flex size-8 shrink-0 items-center justify-center rounded-pill bg-rausch text-fg-inverse transition-colors duration-fast hover:bg-rausch-dark"
+            className="ml-2 flex size-8 shrink-0 items-center justify-center rounded-pill bg-rausch text-fg-inverse transition-colors duration-fast hover:bg-rausch-dark"
           >
             <SearchIcon size={14} />
           </button>
@@ -98,9 +112,11 @@ export function SiteHeader() {
             'Become a host' 125 wide ending at 1719, lang at 1727 and menu at
             1775 — i.e. two 8px gaps. A 4px gap puts the lang button at 1731. */}
         <nav className="ml-auto flex h-11 items-center gap-2">
+          {/* Explicit 125px: measured x1594..x1719. Letting the text size it
+              came out 4px narrow, which shifted the whole cluster. */}
           <a
             href="/host"
-            className="flex h-11 items-center rounded-pill px-3 text-sm font-medium text-fg transition-colors duration-fast hover:bg-surface-hover"
+            className="flex h-11 w-[125px] items-center justify-center whitespace-nowrap rounded-pill text-sm font-medium text-fg transition-colors duration-fast hover:bg-surface-hover"
           >
             Become a host
           </a>

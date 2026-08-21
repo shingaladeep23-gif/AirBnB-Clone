@@ -61,6 +61,7 @@ export function HeroGallery({
           onClick={onPhotoClick}
           priority
           sizes="556px"
+          total={photos.length}
         />
 
         <div className="grid grid-cols-2 grid-rows-2 gap-gallery-gap">
@@ -71,6 +72,7 @@ export function HeroGallery({
               index={i + 1}
               onClick={onPhotoClick}
               sizes="274px"
+              total={photos.length}
             />
           ))}
         </div>
@@ -95,17 +97,22 @@ function GalleryTile({
   onClick,
   priority = false,
   sizes,
+  total,
 }: {
   photo: ListingPhoto;
   index: number;
   onClick: (index: number) => void;
   priority?: boolean;
   sizes: string;
+  total: number;
 }) {
   return (
     <button
       type="button"
       onClick={() => onClick(index)}
+      // Without this the tile is an unlabelled button: the <img> alt does not
+      // name the control, so AT announced five bare "button"s.
+      aria-label={`View photo ${index + 1} of ${total} full screen`}
       // `group` drives the hover dim; the image itself fills the tile and is
       // cropped by object-cover, since source photos are 4:3 and 16:9 but the
       // tiles are neither.

@@ -47,8 +47,12 @@ export function SectionNav({ listing }: { listing: Listing }) {
 
   return (
     <div
-      className={`sticky top-header-h z-20 border-b border-border-subtle bg-surface transition-transform duration-base ease-standard ${
-        revealed ? "translate-y-0" : "-translate-y-full"
+      // FIXED, not sticky. A sticky bar stays in flow and occupies its 64px+1px
+      // even while parked, which pushed the whole content block ~54px down and
+      // put the gallery at y228 instead of the measured y174. The reference
+      // parks this at y-66 (out of flow) and slides it in.
+      className={`fixed left-0 right-0 top-[calc(var(--spacing-header-h)+1px)] z-20 border-b border-border-subtle bg-surface transition-transform duration-base ease-standard ${
+        revealed ? "translate-y-0" : "-translate-y-[calc(100%+var(--spacing-header-h))]"
       }`}
       // Hidden from AT only while parked, so the anchors aren't announced as
       // visible chrome when they're offscreen.

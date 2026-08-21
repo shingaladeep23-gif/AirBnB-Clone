@@ -138,6 +138,7 @@
   --spacing-search-pill-h: 48px; /* EXACT */
   --spacing-section-nav-h: 64px; /* EXACT: sticky anchor bar */
   --spacing-nav-offset: 153px; /* header 89 + section nav 64 — anchor scroll offset */
+  --spacing-title-row-h: 85px; /* derived: header ends y89, gallery starts y174 */
   --spacing-gallery-h: 490px; /* APPROX: y174 -> y665 */
   --spacing-gallery-gap: 8px; /* APPROX: gutter between hero tiles */
   /* Two-column body split (CONVENTION, per BELOW-FOLD-SPEC §2): 675 + 75 + 370
