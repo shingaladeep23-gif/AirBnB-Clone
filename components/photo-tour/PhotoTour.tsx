@@ -31,31 +31,53 @@ export interface PhotoTourProps {
  * deep-linkable and browser back/forward closes and reopens it. The mapping lives
  * in `lib/overlay.ts`; this component just receives callbacks.
  *
- * LAYOUT RULE (BELOW-FOLD-SPEC §1): the 6 wide photos (1440x808, 16:9) are the
- * natural full-width rows; the 37 at 4:3 pair up two-across. That is derived from
- * the real asset dimensions, not decoration — mixing them into a uniform grid
- * would letterbox or crop most of the set.
+ * GROUPED BY ROOM. `lib/photos.ts` is generated in Airbnb's room order, so
+ * grouping consecutive photos by `room` yields the tour sections with no sorting —
+ * and no risk of inventing an order nobody measured.
  *
- * PENDING: per-room grouping is not captured, so photos render in manifest order
- * ungrouped. `groupPhotosIntoRows` keys off aspect ratio only; when a room mapping
- * lands it can be layered on top without changing the row logic.
+ * LAYOUT RULE: the 6 wide photos (1440x808, 16:9) are full-width rows; the 37 at
+ * 4:3 pair two-across. Aspect ratio tracks the CAMERA, not the room — the wide
+ * six are all drone exteriors and all sit in the final "Building and surroundings"
+ * group, so the full-width rows form one contiguous run at the end rather than
+ * being distributed as group openers. Rows are computed per group, so this falls
+ * out naturally instead of being special-cased.
  */
 
 /** A row is either one wide photo or a pair of 4:3 photos. */
 type Row = { kind: "wide"; photo: Indexed } | { kind: "pair"; photos: Indexed[] };
 type Indexed = { photo: ListingPhoto; index: number };
+type RoomGroup = { room: string; rows: Row[] };
+
+/**
+ * Splits the manifest into consecutive same-room runs, preserving order.
+ * Consecutive rather than keyed-by-room on purpose: the manifest order IS the
+ * tour order, and bucketing by key would silently reorder it.
+ */
+export function groupPhotosByRoom(photos: ListingPhoto[]): RoomGroup[] {
+  const groups: { room: string; photos: Indexed[] }[] = [];
+
+  photos.forEach((photo, index) => {
+    const room = photo.room ?? "Photos";
+    const current = groups[groups.length - 1];
+    if (current && current.room === room) current.photos.push({ photo, index });
+    else groups.push({ room, photos: [{ photo, index }] });
+  });
+
+  return groups.map((g) => ({ room: g.room, rows: buildRows(g.photos) }));
+}
 
 /** Wide photos are 16:9-ish; everything else is 4:3 and pairs up. */
 function isWide(photo: ListingPhoto): boolean {
   return photo.width / photo.height > 1.5;
 }
 
-export function groupPhotosIntoRows(photos: ListingPhoto[]): Row[] {
+/** Lays a single room's photos into rows: wide ones solo, 4:3 ones in pairs. */
+function buildRows(items: Indexed[]): Row[] {
   const rows: Row[] = [];
   let pending: Indexed | null = null;
 
-  photos.forEach((photo, index) => {
-    const item = { photo, index };
+  items.forEach((item) => {
+    const { photo } = item;
 
     if (isWide(photo)) {
       // Flush a half-built pair first so document order is preserved.
@@ -91,7 +113,7 @@ export function PhotoTour({
   useEscapeKey(onClose, isTopmost);
   const containerRef = useFocusTrap<HTMLDivElement>();
 
-  const rows = groupPhotosIntoRows(listing.photos);
+  const groups = groupPhotosByRoom(listing.photos);
 
   return (
     <div
@@ -137,30 +159,38 @@ export function PhotoTour({
       <div className="mx-auto w-full max-w-[712px] pb-20 pt-4">
         <h2 className="pb-8 text-2xl font-semibold text-fg">Photo tour</h2>
 
-        <div className="flex flex-col gap-2">
-          {rows.map((row, i) =>
-            row.kind === "wide" ? (
-              <TourPhoto
-                key={row.photo.photo.id}
-                item={row.photo}
-                onSelect={onPhotoSelect}
-                total={listing.photos.length}
-                className="aspect-16/9"
-              />
-            ) : (
-              <div key={`pair-${i}`} className="flex gap-2">
-                {row.photos.map((item) => (
-                  <TourPhoto
-                    key={item.photo.id}
-                    item={item}
-                    onSelect={onPhotoSelect}
-                    total={listing.photos.length}
-                    className="aspect-4/3 flex-1"
-                  />
-                ))}
+        <div className="flex flex-col gap-10">
+          {groups.map((group) => (
+            <section key={group.room} aria-label={group.room}>
+              <h3 className="pb-3 text-lg font-semibold text-fg">{group.room}</h3>
+
+              <div className="flex flex-col gap-2">
+                {group.rows.map((row, i) =>
+                  row.kind === "wide" ? (
+                    <TourPhoto
+                      key={row.photo.photo.id}
+                      item={row.photo}
+                      onSelect={onPhotoSelect}
+                      total={listing.photos.length}
+                      className="aspect-16/9"
+                    />
+                  ) : (
+                    <div key={`${group.room}-pair-${i}`} className="flex gap-2">
+                      {row.photos.map((item) => (
+                        <TourPhoto
+                          key={item.photo.id}
+                          item={item}
+                          onSelect={onPhotoSelect}
+                          total={listing.photos.length}
+                          className="aspect-4/3 flex-1"
+                        />
+                      ))}
+                    </div>
+                  ),
+                )}
               </div>
-            ),
-          )}
+            </section>
+          ))}
         </div>
       </div>
     </div>
@@ -182,9 +212,10 @@ function TourPhoto({
     <button
       type="button"
       onClick={() => onSelect(item.index)}
-      // Explicit accessible name: without it this is an unlabelled button, which
-      // is exactly the defect the gallery tiles had.
-      aria-label={`View photo ${item.index + 1} of ${total} full screen`}
+      // Names the control with the photo's own description rather than a bare
+      // ordinal. The four byte-identical twins get distinct alt text (position
+      // within their room group), so no two buttons announce identically.
+      aria-label={`${item.photo.alt} — view full screen, photo ${item.index + 1} of ${total}`}
       className={`group relative overflow-hidden rounded-md bg-surface-sunken ${className}`}
     >
       <Image

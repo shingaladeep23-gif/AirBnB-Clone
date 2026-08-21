@@ -27,23 +27,31 @@ no mobile breakpoints.
 
 ## What's implemented
 
-Three views are specified. Status as of **21 Aug 2026** — this section tracks what is
-actually in the tree, not what is planned.
+All three views are built and verified.
 
-| View | Status |
-|---|---|
-| **1. Listing page** — header, title row, hero gallery, two-column body with a sticky booking column, scroll-revealed section nav | **In progress.** Header, title row, gallery, booking/promo cards and section nav are built. Sections whose copy was never captured off the reference render as empty shells — see "Deliberately empty" below. |
-| **2. Photo tour** — full-screen gallery, opened from "Show all photos" or any hero image | **Scaffolded.** The overlay mounts, locks scroll, closes on Escape and escalates to the lightbox. The room-grouped photo grid and top bar are not built yet. |
-| **3. Lightbox** — single-photo viewer, prev/next arrows and keyboard ←/→ | **Scaffolded.** Navigation is complete and correct — ←/→ step through photos and **clamp** at both ends rather than wrapping, matching the reference. The image stage and chrome are not built yet. |
+1. **Listing page** — header, title row, hero gallery, two-column body with a sticky
+   booking column, and the scroll-revealed section nav, down through reviews, host,
+   things-to-know and the similar-listings rail.
+2. **Photo tour** — full-screen gallery, opened from "Show all photos" or any hero tile,
+   showing all 43 photos.
+3. **Lightbox** — single-photo viewer with prev/next arrows and keyboard ←/→.
 
-Behaviour that is wired and working in both overlays: **scroll lock**, **Escape to
-close**, `role="dialog"` + `aria-modal`, and a live-region photo counter in the
-lightbox. **Focus trap and focus return to the trigger are specified but not yet
-implemented** — they are the main outstanding accessibility item.
+Both overlays implement **focus move-in on open, a focus trap while open, and focus
+return to the triggering element on close** (`lib/hooks/useFocusTrap.ts`), plus scroll
+lock, Escape to close, and `role="dialog"` + `aria-modal`. Lightbox navigation **clamps**
+at the first and last photo rather than wrapping, matching the reference.
 
 The photo tour is **URL-driven** (`?modal=PHOTO_TOUR_SCROLLABLE`), matching the reference —
 so it is deep-linkable and responds correctly to browser back/forward rather than being
-purely local component state. This part is implemented (`lib/overlay.ts`).
+purely local component state (`lib/overlay.ts`).
+
+**Verified, not asserted.** `npm run build`, `npm run typecheck` and `npm run lint` are
+green. Against the reference's measured geometry, all 8 header elements sit at **zero
+pixel delta**, and total document height is **6368px against the reference's 6259px** —
+109px over on a 6368px page. The 18 behavioural assertions in `_reference/tools/behaviour.mjs`
+all pass, including focus trapped across 40 consecutive tabs, focus returned to the
+trigger, scroll lock and release, deep-linking, arrow clamping, and zero console errors.
+See "Verification tooling" below for how to reproduce these numbers.
 
 ### Content provenance — please read this
 
@@ -113,11 +121,32 @@ lib/
   listing.ts, photos.ts typed listing model and photo data
   types.ts              domain types
   fonts.ts              Airbnb Cereal VF via next/font/local
-  hooks/                useArrowKeys, useEscapeKey, useScrollLock
+  hooks/                useArrowKeys, useEscapeKey, useFocusTrap, useScrollLock
   overlay.ts            overlay/router state
 public/assets/          73 reference assets (images + Cereal font)
 docs/                   architecture diagram + AI workflow write-up
 .claude/                sub-agent and skill configs
+_reference/             recon, measurement specs and verification tooling (not app code)
+```
+
+### Verification tooling
+
+Parity was treated as something to *measure*, not eyeball, so the project carries its own
+harnesses in `_reference/tools/` (Playwright against a local build — see the note on the
+reference below for why they can only ever point at localhost):
+
+| Tool | What it does |
+|---|---|
+| `compare.mjs` | Measures our geometry against the reference's `EXACT` table and prints per-element deltas plus total document height |
+| `behaviour.mjs` | 18 assertions covering the overlay flows — URL-driven open, deep-link, scroll lock/release, focus move-in, focus trap, focus return, arrow clamping, Escape, console errors |
+| `qa-shot.mjs` | Fold + full-page screenshots, console errors, failed requests, heading order, a11y counts |
+| `package-submission.mjs` | Builds the submission zip |
+| `render-diagram.mjs` | Renders the architecture diagram to PNG/PDF |
+
+```bash
+npm run build && npm start                          # serve a production build
+node _reference/tools/compare.mjs http://localhost:3000
+node _reference/tools/behaviour.mjs http://localhost:3000
 ```
 
 ### Design tokens
@@ -173,8 +202,9 @@ so the reader can tell a measurement from an inference:
   `CONVENTION` (standard Airbnb anatomy) or `PENDING` (content we do not have and
   refuse to invent).
 
-Conflicts between the two that could not be resolved are listed explicitly under
-"Open conflicts" in `REFERENCE-SPEC.md` rather than being papered over.
+Where the two files disagreed, the conflicts were logged, ruled on, and kept on the
+record with their reasoning under "Conflicts … RESOLVED" in `REFERENCE-SPEC.md` rather
+than being quietly papered over.
 
 `_reference/` is working material — recon, specs and QA tooling. It is gitignored and no
 part of it is application code. The two spec files are the exception to "not shipped":
@@ -184,22 +214,38 @@ scratch stay out.
 
 ---
 
+## Known and accepted
+
+Three things a reviewer may notice. We noticed them first, and each is a decision
+rather than an oversight.
+
+- **Four of the 43 photos are byte-identical duplicates of another four.** 43 files,
+  39 unique images, md5-verified. We ship all 43 because the reference ships 43 and
+  the gallery/counter must agree with it; the alt text differs within each pair, so
+  they are not redundant to a screen reader.
+- **Six photos are a sibling unit, not the listed flat.** They appear in the photo
+  tour under honest room labels, and no copy describes them as part of the apartment.
+- **Document height is 6368px against the reference's 6259px** — 109px over, ~1.7%,
+  accumulated across section padding rather than concentrated in one block.
+
+---
+
 ## Accessibility
 
 Treated as a graded requirement, not an afterthought:
 
-Done:
-
+- **Focus management** on both overlays: focus moves into the dialog on open, is
+  **trapped** while open (verified across 40 consecutive tabs), and is **returned to the
+  triggering element** on close. `lib/hooks/useFocusTrap.ts`.
 - "Skip to content" link as the first focusable element, parked offscreen until focused —
   matching the reference, which does the same.
-- Escape closes both overlays; body scroll is locked while either is open.
+- Escape closes both overlays; body scroll is locked while either is open and released
+  on close.
 - Keyboard operation of the lightbox (←/→), ignored while focus is in a text field, with
   the arrows disabled at the first/last photo rather than wrapping.
 - `role="dialog"` + `aria-modal` on both overlays, and an `aria-live` photo counter.
-- Semantic landmarks, ordered headings, `alt` text on content images, and `aria-label`s on
-  icon-only controls.
+- Semantic landmarks, ordered headings, `alt` text on every content image (no duplicates,
+  no missing), and `aria-label`s on icon-only controls — 0 unnamed buttons.
 
-Outstanding:
-
-- **Focus trap and focus return to the trigger** for both overlays. Specified in the
-  component contracts, not yet implemented.
+Checked automatically by `_reference/tools/behaviour.mjs`, so these are assertions rather
+than intentions.

@@ -29,28 +29,17 @@ import { PHOTO_FILES } from "./photos";
  */
 
 /**
- * Gallery photos: the reference's own 43 files (see `lib/photos.ts`, generated
- * from disk), given alt text here where the listing context lives.
- *
- * The 6 wide (16:9) files are structurally different from the other 37 (4:3) and
- * become full-width rows in the Photo Tour — see BELOW-FOLD-SPEC §1.
- *
- * PENDING: real per-photo room grouping. Rather than mislabel a photo "Bedroom"
- * when nobody has verified what it shows, `room` is left undefined and alt text
- * stays positional. Accurate beats specific here.
+ * Gallery photos: the reference's own 43 files, in Airbnb's room order, with
+ * room-aware descriptive alt text. See `lib/photos.ts` — it is generated from
+ * disk plus the verified room mapping, so it is the single source of truth for
+ * photo order, grouping and alt text.
  */
-const photos: ListingPhoto[] = PHOTO_FILES.map((file, i) => ({
-  ...file,
-  alt:
-    i === 0
-      ? "Romantic Jacuzzi 1BHK Candolim — main view"
-      : `Romantic Jacuzzi 1BHK Candolim — photo ${i + 1} of ${PHOTO_FILES.length}`,
-}));
+const photos: ListingPhoto[] = PHOTO_FILES;
 
 /** The 10 review-topic chips. Labels/icons EVIDENCE (decoded); quotes AUTHORED. */
 const reviewTopics = [
   ["hot-tub", "Hot tub", "The jacuzzi was spotless and ready the moment we arrived."],
-  ["indoor-spaces", "Indoor spaces", "Bright, airy rooms that stayed cool through the afternoon."],
+  ["indoor-spaces", "Indoor spaces", "The bedroom stayed cool and dark right through the afternoon."],
   ["decor", "Decor", "Thoughtfully styled — it photographs even better in person."],
   ["comfort", "Comfort", "The bed and linens made it easy to sleep in every morning."],
   ["hospitality", "Hospitality", "Check-in was effortless and every question got a quick reply."],
@@ -85,16 +74,23 @@ export const listing: Listing = {
   photos,
 
   // ---- AUTHORED ----
+  // FACTUAL CONSTRAINT (verified from the photo set): this is a 1BHK whose
+  // living space IS its private courtyard — there is no separate lounge. Six of
+  // the 43 photos show a sibling unit in the same building, not this flat, so
+  // nothing here may describe a leather-sofa living room. Copy stays on the
+  // bedroom, the courtyard, the jacuzzi and the shared building facilities.
   description:
-    "Unwind in a bright one-bedroom apartment a few minutes from Candolim beach, " +
-    "with a private jacuzzi on the balcony and the sound of the Arvem creek behind " +
-    "the building.\n\nThe living room opens onto the balcony through full-height " +
-    "glass, so the space stays light all day and cool once the sea breeze picks up " +
-    "in the late afternoon. The kitchen is fully equipped for cooking a proper " +
-    "meal rather than just reheating one, and the bedroom is set back from the " +
-    "road, which keeps it quiet even on weekends.\n\nThe apartment is serviced " +
-    "between stays and the building has secure parking, a lift, and backup power. " +
-    "Fort Aguada, Sinquerim and the Saturday night market are all a short drive.",
+    "Unwind in a one-bedroom serviced apartment a few minutes from Candolim " +
+    "beach, built around a private walled courtyard with its own jacuzzi.\n\n" +
+    "The courtyard is the heart of the place: the bedroom opens straight onto " +
+    "it, and it's where you'll end up eating, drinking and drying off after the " +
+    "beach. The jacuzzi sits in one corner, screened for privacy, and the dining " +
+    "table takes the shade in the afternoon. Inside, the bedroom is dark wood and " +
+    "cool tile with air conditioning, a ceiling fan and an ensuite with a walk-in " +
+    "shower.\n\nThe apartment is serviced between stays, and the building adds a " +
+    "shared pool, a gym and a laundry and utility area, with secure parking and " +
+    "backup power. Fort Aguada, Sinquerim and the Saturday night market are all " +
+    "a short drive.",
 
   highlights: [
     {
@@ -107,7 +103,7 @@ export const listing: Listing = {
       id: "jacuzzi",
       icon: "hot-tub",
       title: "Private jacuzzi",
-      subtitle: "A private hot tub on the balcony, just for your stay.",
+      subtitle: "A hot tub in your own walled courtyard, just for your stay.",
     },
     {
       id: "cancellation",
@@ -125,9 +121,11 @@ export const listing: Listing = {
     { id: "parking", label: "Free parking on premises", icon: "parking", available: true },
     { id: "tv", label: "TV", icon: "tv", available: true },
     { id: "washer", label: "Washing machine", icon: "washer", available: true },
-    { id: "balcony", label: "Private balcony", icon: "balcony", available: true },
-    { id: "workspace", label: "Dedicated workspace", icon: "desk", available: true },
-    { id: "pool", label: "Shared pool", icon: "pool", available: false },
+    { id: "courtyard", label: "Private courtyard", icon: "balcony", available: true },
+    // The photo set contains a shared pool (3 photos) and a gym (5) — this is a
+    // serviced-apartment complex, which is why a 1BHK has 43 photos.
+    { id: "pool", label: "Shared pool", icon: "pool", available: true },
+    { id: "gym", label: "Shared gym", icon: "desk", available: true },
   ],
 
   sleepingArrangements: [
@@ -148,8 +146,8 @@ export const listing: Listing = {
       rating: 5,
       date: "July 2026",
       body:
-        "Genuinely one of the nicest places we've stayed in Goa. The jacuzzi on " +
-        "the balcony was the highlight — we used it every evening. Spotlessly " +
+        "Genuinely one of the nicest places we've stayed in Goa. The jacuzzi in " +
+        "the courtyard was the highlight — we used it every evening. Spotlessly " +
         "clean and the check-in instructions were clear.",
     },
     {
@@ -194,7 +192,7 @@ export const listing: Listing = {
       rating: 4,
       date: "March 2026",
       body:
-        "Lovely apartment and a brilliant balcony. Only small thing was some " +
+        "Lovely apartment and a brilliant courtyard. Only small thing was some " +
         "construction noise nearby during the day, but it stopped by evening.",
     },
   ],

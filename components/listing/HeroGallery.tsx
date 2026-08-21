@@ -112,7 +112,7 @@ function GalleryTile({
       onClick={() => onClick(index)}
       // Without this the tile is an unlabelled button: the <img> alt does not
       // name the control, so AT announced five bare "button"s.
-      aria-label={`View photo ${index + 1} of ${total} full screen`}
+      aria-label={`${photo.alt} — view full screen, photo ${index + 1} of ${total}`}
       // `group` drives the hover dim; the image itself fills the tile and is
       // cropped by object-cover, since source photos are 4:3 and 16:9 but the
       // tiles are neither.
