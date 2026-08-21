@@ -12,7 +12,7 @@
  * property is emitted as a real CSS variable *and* generates matching utilities,
  * so `--color-rausch` gives you `bg-rausch`, `text-rausch`, `border-rausch`, etc.
  *
- * Naming is semantic (`--color-fg-muted`) rather than literal (`--color-grey-6`)
+ * Naming is semantic (`--color-subtle`) rather than literal (`--color-grey-6`)
  * so a token can be re-pointed without touching call sites.
  *
  * NOTE ON PROVENANCE: these values are measured/derived from the reference render,
@@ -36,11 +36,15 @@
 
   /* --------------------------------------------------------------------------
    * FOREGROUND — text colours, darkest to lightest.
-   * `fg` is body copy and headings; `fg-muted` is secondary/meta text
-   * (review counts, captions); `fg-subtle` is disabled and placeholder text.
+   * `fg` is body copy and headings; `subtle` is secondary/meta text (review
+   * counts, captions); `fg-subtle` is disabled and placeholder text.
+   *
+   * There is deliberately ONE mid-grey. An earlier `--color-fg-muted` (#6a6a6a)
+   * sat 7 units from `--color-subtle` (#717171) with zero call sites — two rungs
+   * for one step in the design. The dead one is removed rather than left as a
+   * trap for the next person choosing between them.
    * ------------------------------------------------------------------------ */
   --color-fg: #222222;
-  --color-fg-muted: #6a6a6a;
   --color-subtle: #717171;
   --color-fg-subtle: #b0b0b0;
   --color-fg-inverse: #ffffff;
@@ -154,6 +158,12 @@
   --spacing-content-col-w: 675px; /* left-hand content column width */
   --spacing-map-h: 480px; /* "Where you'll be" map block, 1120x480 */
   --spacing-similar-card-w: 254px; /* 4x254 + 3x32 gutters = 1112, fits 1120 */
+  --spacing-card-w: 400px; /* standard card in a content column (sleeping, host) */
+  /* These two share a value but not a meaning — one is a table column, the other
+     a chip. Kept separate so tuning one can't silently move the other. */
+  --spacing-rating-col-w: 220px; /* "Overall rating" column in the breakdown */
+  --spacing-topic-chip-w: 220px; /* review-topic chip card */
+  --spacing-laurel-h: 150px; /* laurel wreath height in the reviews hero */
 
   /* --------------------------------------------------------------------------
    * MOTION — the reference is restrained: short, ease-out transitions.

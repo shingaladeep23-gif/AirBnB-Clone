@@ -26,7 +26,7 @@ export function WhereYouSleep({
         {arrangements.map((arrangement) => (
           <div
             key={arrangement.id}
-            className="w-[400px] rounded-card border border-border-subtle p-4"
+            className="w-card-w rounded-card border border-border-subtle p-4"
           >
             <span className="text-fg">
               <LineIcon name={arrangement.icon} size={24} />

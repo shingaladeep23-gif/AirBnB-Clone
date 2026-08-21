@@ -26,7 +26,7 @@ export function MeetYourHost({
 
       <div className="flex gap-16 pt-8">
         {/* Host card */}
-        <div className="w-[400px] shrink-0">
+        <div className="w-card-w shrink-0">
           <div className="flex flex-col items-center rounded-2xl px-8 py-10 shadow-card">
             <Image
               src={host.avatar}

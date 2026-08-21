@@ -26,15 +26,15 @@ the token first, then use it. Arbitrary values (`text-[26px]`, `bg-[#222]`) are 
 smell — reaching for brackets means a token is missing.
 
 Why this is enforced: a pixel-parity clone lives or dies on consistency. One
-hardcoded `#717171` where the rest of the page uses `#6A6A6A` is invisible in review
-and obvious in a side-by-side diff.
+hardcoded `#727272` where the rest of the page uses the `subtle` token (`#717171`)
+is invisible in review and obvious in a side-by-side diff.
 
 ## What's available
 
 | Group | Tokens | Sample utilities |
 |---|---|---|
 | Brand | `rausch`, `rausch-dark`, `rausch-darker`, `cta-from/via/to` | `bg-rausch`, `text-rausch` |
-| Foreground | `fg`, `fg-muted`, `subtle`, `fg-subtle`, `fg-inverse` | `text-fg`, `text-subtle` |
+| Foreground | `fg`, `subtle`, `fg-subtle`, `fg-inverse` | `text-fg`, `text-subtle` |
 | Surface | `surface`, `surface-sunken`, `surface-raised`, `surface-hover`, `surface-inverse`, `surface-overlay` | `bg-surface-sunken` |
 | Border | `border`, `border-subtle`, `border-strong` | `border-border-subtle` |
 | Type | `text-xs` → `text-3xl`, each with a paired line-height | `text-2xl` |
@@ -46,21 +46,23 @@ and obvious in a side-by-side diff.
 
 ## Choosing the right one
 
-- **Text colour:** `fg` (#222) for headings and body. `subtle` (#717171) / `fg-muted`
-  (#6A6A6A) for meta and captions. `fg-subtle` (#B0B0B0) is decorative/disabled only
-  — it fails contrast for normal text, so don't put real information in it.
+- **Text colour:** `fg` (#222) for headings and body, `subtle` (#717171) for meta
+  and captions. There is deliberately ONE mid-grey — a near-identical `fg-muted`
+  (#6A6A6A) was removed for having zero call sites, so don't reintroduce a second
+  rung. `fg-subtle` (#B0B0B0) is decorative/disabled only: it fails contrast for
+  normal text, so never put real information in it.
 - **Type:** always take the size token, which carries its line-height. Don't pair a
   size token with a hand-picked leading; that's how total page height drifts.
 - **The Reserve CTA** is a three-stop gradient (`cta-from` → `cta-via` → `cta-to`),
   not a flat `rausch` fill. Flat pink is a common parity miss.
 - **Layout:** the content column is `--container-content` (1120px), split into
-  `content-col-w` (648px) and `booking-card-w` (372px). Use the tokens rather than
+  `content-col-w` (675px) and `booking-card-w` (370px). Use the tokens rather than
   re-deriving the arithmetic per component.
 
 ## Adding a token
 
 1. Confirm it doesn't already exist under a different name.
-2. Name it for its **role**, not its appearance: `--color-fg-muted`, never
+2. Name it for its **role**, not its appearance: `--color-subtle`, never
    `--color-grey-6`. Roles survive redesigns; values don't.
 3. Put it in the right `@theme` group and add a comment: what it represents and,
    if measured off the reference, what it was measured from.

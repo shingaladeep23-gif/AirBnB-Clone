@@ -112,7 +112,10 @@ export function SiteHeader() {
         {/* gap-2 (8px), not 4px: the measured cluster is x1594..x1815 with
             'Become a host' 125 wide ending at 1719, lang at 1727 and menu at
             1775 — i.e. two 8px gaps. A 4px gap puts the lang button at 1731. */}
-        <nav className="ml-auto flex h-11 items-center gap-2">
+        {/* BUG-004: named, because the page has two <nav> landmarks (this and
+            the sticky section nav) and an unnamed one is ambiguous in a
+            landmarks list. */}
+        <nav aria-label="Main" className="ml-auto flex h-11 items-center gap-2">
           {/* Explicit 125px: measured x1594..x1719. Letting the text size it
               came out 4px narrow, which shifted the whole cluster. */}
           <a

@@ -33,7 +33,7 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
               alt=""
               width={99}
               height={150}
-              className="h-[150px] w-auto"
+              className="h-laurel-h w-auto"
             />
             <span className="text-hero font-semibold text-fg">
               {listing.rating}
@@ -43,7 +43,7 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
               alt=""
               width={99}
               height={150}
-              className="h-[150px] w-auto"
+              className="h-laurel-h w-auto"
             />
           </div>
           <h2 className="pt-4 text-2xl font-semibold text-fg">Guest favourite</h2>
@@ -56,7 +56,7 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
 
       {/* 10b — Rating breakdown. Line icons, NOT the chips/ illustrations. */}
       <div className="flex items-stretch border-y border-border-subtle py-6">
-        <div className="w-[220px] pr-8">
+        <div className="w-rating-col-w pr-8">
           <p className="text-sm font-medium text-fg">Overall rating</p>
           <div className="pt-2">
             {[5, 4, 3, 2, 1].map((star) => (
@@ -91,12 +91,19 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
 
       {/* 10c — Review topic chips: exactly 10, horizontally scrollable. */}
       {listing.reviewTopics.length > 0 && (
-        <div className="overflow-x-auto py-8">
+        // BUG-003: a scroll container is keyboard-focusable, so it needs a role
+        // and an accessible name or it announces as an unlabelled group.
+        <div
+          className="overflow-x-auto py-8"
+          role="group"
+          aria-label="What guests said, by topic"
+          tabIndex={0}
+        >
           <ul className="flex gap-4">
             {listing.reviewTopics.map((topic) => (
               <li
                 key={topic.id}
-                className="flex w-[220px] shrink-0 flex-col rounded-card border border-border-subtle p-4"
+                className="flex w-topic-chip-w shrink-0 flex-col rounded-card border border-border-subtle p-4"
               >
                 <Image
                   src={topic.icon}

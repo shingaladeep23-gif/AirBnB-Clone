@@ -101,7 +101,7 @@ Conflating them makes a report impossible to act on.
 ## 5. Turning a value into a token
 
 1. Check it doesn't already exist under another name.
-2. Name it for its **role**, not its value: `--color-fg-muted`, not `--color-grey-6`.
+2. Name it for its **role**, not its value: `--color-subtle`, not `--color-grey-6`.
 3. Add it to `app/styles/tokens.css` (Tailwind v4 is CSS-first — that `@theme`
    block *is* the config) with a comment recording what it represents and its
    precision tag.

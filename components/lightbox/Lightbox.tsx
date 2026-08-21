@@ -71,7 +71,13 @@ export function Lightbox({ photos, initialIndex, onClose }: LightboxProps) {
           <ChevronIcon size={16} />
         </button>
 
-        <p aria-live="polite" className="text-sm font-medium text-fg-inverse">
+        {/* aria-atomic: without it the region can announce only the changed text
+            node ("9") rather than the whole "9 / 43", which is meaningless. */}
+        <p
+          aria-live="polite"
+          aria-atomic="true"
+          className="text-sm font-medium text-fg-inverse"
+        >
           {index + 1} / {photos.length}
         </p>
 

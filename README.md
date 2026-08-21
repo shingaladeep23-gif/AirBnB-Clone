@@ -155,7 +155,7 @@ node _reference/tools/behaviour.mjs http://localhost:3000
 `@theme` block *is* the config: each custom property emits a real CSS variable **and**
 generates matching utilities (`--color-rausch` → `bg-rausch`, `text-rausch`, …).
 
-Naming is semantic (`--color-fg-muted`) rather than literal (`--color-grey-6`), so a token
+Naming is semantic (`--color-subtle`) rather than literal (`--color-grey-6`), so a token
 can be re-pointed without touching call sites.
 
 **Provenance:** token values are *measured from the rendered reference*, not copied from
