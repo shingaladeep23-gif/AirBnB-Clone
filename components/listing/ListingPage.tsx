@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type { Listing, OverlayState } from "@/lib/types";
 import {
   overlayFromSearchParams,
@@ -36,8 +36,6 @@ import { Lightbox } from "@/components/lightbox/Lightbox";
  * See `lib/overlay.ts` for the URL <-> state mapping.
  */
 export function ListingPage({ listing }: { listing: Listing }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const overlay = overlayFromSearchParams(
@@ -45,20 +43,39 @@ export function ListingPage({ listing }: { listing: Listing }) {
     listing.photos.length,
   );
 
-  const navigateToOverlay = useCallback(
-    (next: OverlayState) => {
-      const params = searchParamsForOverlay(
-        new URLSearchParams(searchParams.toString()),
-        next,
-      );
-      const url = `${pathname}${toQuerySuffix(params)}`;
+  /*
+    Overlay transitions go through the NATIVE History API, not router.push().
 
-      // push() for opening (so back closes it); the close path uses back() below
-      // so we don't grow the history stack on open/close cycles.
-      router.push(url, { scroll: false });
-    },
-    [pathname, router, searchParams],
-  );
+    router.push() silently discards a search-param-only navigation when the
+    document was hard-loaded at a URL that already carried a query string.
+    Concretely: land on `/?modal=PHOTO_TOUR_SCROLLABLE` (a deep link, a refresh
+    while the tour is open, or a shared link) and every subsequent push is
+    reconciled back to the URL the router already holds — it emits a
+    replaceState to the CURRENT url and the intended one never lands. Every
+    control inside the tour dies at once: close, and all 43 photos. Reaching the
+    same state by soft navigation from `/` works, which is why this hid for so
+    long, and why `scripts/verify-overlays.mjs` now drives the deep-linked path
+    explicitly.
+
+    pushState is a supported App Router integration point — `useSearchParams`
+    resyncs from it — so this keeps the overlay URL-driven and back/forward
+    working, and it skips a pointless RSC round-trip for what is a purely
+    client-side view change.
+
+    Reading `window.location.search` rather than the `searchParams` snapshot also
+    drops the last stale-closure hazard: the callback now has no dependencies.
+  */
+  const navigateToOverlay = useCallback((next: OverlayState) => {
+    const params = searchParamsForOverlay(
+      new URLSearchParams(window.location.search),
+      next,
+    );
+    window.history.pushState(
+      null,
+      "",
+      `${window.location.pathname}${toQuerySuffix(params)}`,
+    );
+  }, []);
 
   const openPhotoTour = useCallback(
     () => navigateToOverlay({ kind: "photo-tour" }),

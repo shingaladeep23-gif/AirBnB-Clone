@@ -1,5 +1,5 @@
 // Behavioural verification of the Photo Tour + Lightbox flows on localhost.
-import { chromium } from "playwright";
+import { chromium } from "./playwright.mjs";
 
 const url = process.argv[2] || "http://localhost:3000";
 const browser = await chromium.launch({ headless: true });
@@ -114,12 +114,58 @@ check("focus returned to the 'Show all photos' trigger", await page.evaluate(() 
   document.activeElement?.getAttribute("data-testid") === "show-all-photos"),
   await page.evaluate(() => document.activeElement?.tagName + "/" + (document.activeElement?.getAttribute("data-testid") ?? "-")));
 
-// --- Deep link straight into the tour
-// 'load', not 'networkidle': the tour lazy-loads 43 photos, so the network never
-// goes fully idle within the timeout.
+/*
+  --- DEEP-LINKED TOUR: the controls must work here too.
+
+  Everything above reached the tour by SOFT navigation (clicking "Show all
+  photos" from `/`). That is a different code path from a hard load at
+  `/?modal=PHOTO_TOUR_SCROLLABLE`, and a regression once killed every handler in
+  the tour on the hard-load path only — `router.push` discarded search-param-only
+  navigations once the document had been loaded with a query string already on
+  it. The suite was green throughout, because it never clicked anything after
+  deep-linking. So: deep-link, then drive the real controls.
+
+  'load', not 'networkidle': the tour lazy-loads 43 photos, so the network never
+  goes fully idle within the timeout.
+*/
 await page.goto(`${url}/?modal=PHOTO_TOUR_SCROLLABLE`, { waitUntil: "load", timeout: 60000 });
 await page.waitForTimeout(1200);
 check("tour is deep-linkable", await page.locator('[role="dialog"]').count() === 1);
+
+// Wait past hydration+settle: the regression only appeared ~800ms after load, so
+// clicking immediately would have missed it.
+await page.waitForTimeout(1500);
+await page.click('[role="dialog"] button[aria-label*="photo 8 of 43"]');
+await page.waitForTimeout(800);
+
+// A dead handler leaves the lightbox unmounted, so read its counter defensively:
+// a bare textContent() here would throw and abort the run, which reports as a
+// crashed suite rather than a failed check.
+const lightboxOpen = await page.locator('[aria-label="Photo viewer"]').count() === 1;
+check("DEEP-LINKED: clicking a tour photo opens the lightbox", lightboxOpen, "url=" + page.url());
+const deepCounter = lightboxOpen
+  ? (await page.locator('[aria-label="Photo viewer"] [aria-live="polite"]').textContent())?.trim()
+  : null;
+check("DEEP-LINKED: lightbox opens at the clicked index (8)",
+  !!deepCounter?.startsWith("8 /"), `counter=${deepCounter ?? "(no lightbox)"}`);
+check("DEEP-LINKED: the click pushed ?photo=7", page.url().includes("photo=7"), page.url());
+
+// Back must close the lightbox and reveal the tour — the URL is the state, so
+// this is the same assertion as "history entries are real".
+await page.goBack();
+await page.waitForTimeout(800);
+check("DEEP-LINKED: browser Back closes the lightbox, keeps the tour",
+  await page.locator('[aria-label="Photo viewer"]').count() === 0 &&
+  await page.locator('[role="dialog"]').count() === 1, "url=" + page.url());
+
+// The tour's own Close button died in the same regression; Escape did not, so
+// only clicking it catches this.
+await page.click('[role="dialog"] button[aria-label="Close photo tour"]').catch(() => {});
+await page.waitForTimeout(800);
+const dialogsAfterClose = await page.locator('[role="dialog"]').count();
+check("DEEP-LINKED: the tour's Close button closes the tour",
+  dialogsAfterClose === 0 && !page.url().includes("modal="),
+  "url=" + page.url() + " dialogs=" + dialogsAfterClose);
 
 console.log("\nOverlay behaviour\n" + "=".repeat(62));
 let fails = 0;
