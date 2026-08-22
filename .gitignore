@@ -37,3 +37,8 @@ yarn-error.log*
 
 .vercel
 .env*
+
+# Assignment brief, invite screenshot and built submission zip — not part of the app
+/Playpower Labs Assignment_ Airbnb-Clone App.pdf
+/Screenshot*.png
+/airbnb-listing-clone-submission.zip
