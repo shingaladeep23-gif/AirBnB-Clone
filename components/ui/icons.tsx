@@ -151,6 +151,39 @@ export function ChevronIcon({ size = 16, className, strokeWidth = 3 }: IconProps
   );
 }
 
+/** Plus — the guest stepper's increment. */
+export function PlusIcon({ size = 16, className, strokeWidth = 2 }: IconProps) {
+  return (
+    <svg {...svgProps(size, className)} fill="none" stroke="currentColor">
+      <path d="M16 6v20M6 16h20" strokeWidth={strokeWidth} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Minus — the guest stepper's decrement. */
+export function MinusIcon({ size = 16, className, strokeWidth = 2 }: IconProps) {
+  return (
+    <svg {...svgProps(size, className)} fill="none" stroke="currentColor">
+      <path d="M6 16h20" strokeWidth={strokeWidth} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Tick in a circle — the reservation confirmation. */
+export function CheckCircleIcon({ size = 32, className, strokeWidth = 2.5 }: IconProps) {
+  return (
+    <svg {...svgProps(size, className)} fill="none" stroke="currentColor">
+      <circle cx="16" cy="16" r="13" strokeWidth={strokeWidth} />
+      <path
+        d="M10 16.5l4 4 8-8.5"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /**
  * The Airbnb wordmark lockup.
  *

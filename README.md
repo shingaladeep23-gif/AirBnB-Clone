@@ -19,6 +19,11 @@ npm run build && npm start   # production build, then serve it
 npm run typecheck            # tsc --noEmit
 ```
 
+**No setup step.** The database is SQLite, committed and already seeded, so there
+is no `.env` to write, no credentials, and no cloud account. `npm install` runs
+`prisma generate`; that is the whole of it. To start over:
+`npm run db:reset && npm run db:seed`.
+
 **View at a desktop width.** The brief scopes this to desktop only, and the layout is
 built and verified at a locked viewport of **1910 × 1000, DPR 1**. There are deliberately
 no mobile breakpoints.
@@ -52,6 +57,47 @@ pixel delta**, and total document height is **6368px against the reference's 625
 all pass, including focus trapped across 40 consecutive tabs, focus returned to the
 trigger, scroll lock and release, deep-linking, arrow clamping, and zero console errors.
 See "Verification tooling" below for how to reproduce these numbers.
+
+### The backend
+
+The booking path is real: a database, an API, and a booking you can actually make.
+
+| Method | Route | |
+|---|---|---|
+| GET | `/api/listings/:slug` | the full listing |
+| GET | `/api/listings/:slug/availability?from&to` | blocked nights + per-night prices |
+| POST | `/api/listings/:slug/quote` | dates + guests → nights, subtotal, fees, total |
+| POST | `/api/reservations` | creates a booking; validates availability server-side |
+| GET | `/api/reservations/:id` | confirmation |
+
+**Next.js Route Handlers (Node runtime) + Prisma + SQLite.** Route handlers *are* a
+Node backend — the brief's "Node.js or Java" — and keep this to one repo, one
+install, one command. A separate Express process would have added a port for no
+marks.
+
+Two rules hold, and they are the reason for having a backend at all:
+
+- **The price is computed on the server and never accepted from the client.** No
+  request body has a money field, so there is nothing for a tampered request to
+  aim at. `/quote` and `/reservations` call the same `quoteStay` on the same
+  inputs, so what you are shown and what you are charged cannot diverge.
+- **A reservation re-checks availability inside the transaction that writes it**,
+  and blocks those nights in the same transaction. Checking first and writing
+  second is a time-of-check/time-of-use race that double-books under concurrency.
+
+Both are asserted, not claimed — `scripts/verify-booking.mjs` posts a tampered
+`total: 1` and checks the reservation was written at the real price, then re-books
+the nights it just bought and requires a 409.
+
+**The honest trade-off.** SQLite was chosen over hosted Postgres so a reviewer
+needs zero setup. The cost is that on a serverless host, SQLite writes are
+per-instance and ephemeral — reads and the whole flow work, but a booking would
+not survive across instances in production. The data layer therefore sits behind
+the `ListingRepository` interface in `lib/repository.ts`, and nothing above it
+imports Prisma, so moving to Postgres is a swap rather than a rewrite. The
+architecture diagram already specifies the production design, including the range
+exclusion constraint that would enforce the no-double-booking invariant in the
+database rather than in a transaction.
 
 ### Content provenance — please read this
 

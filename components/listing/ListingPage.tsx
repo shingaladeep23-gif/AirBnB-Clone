@@ -14,7 +14,6 @@ import { TitleBlock } from "./TitleBlock";
 import { HeroGallery } from "./HeroGallery";
 import { ListingDetails } from "./ListingDetails";
 import { PromoCard } from "./PromoCard";
-import { BookingCard } from "./BookingCard";
 import { ReviewsSection } from "./ReviewsSection";
 import { LocationSection } from "./LocationSection";
 import { MeetYourHost } from "./MeetYourHost";
@@ -23,6 +22,7 @@ import { SimilarListings } from "./SimilarListings";
 import { SiteFooter } from "./SiteFooter";
 import { PhotoTour } from "@/components/photo-tour/PhotoTour";
 import { Lightbox } from "@/components/lightbox/Lightbox";
+import { BookingCard } from "@/components/booking/BookingCard";
 
 /**
  * Composition root for all three views.
@@ -35,7 +35,14 @@ import { Lightbox } from "@/components/lightbox/Lightbox";
  *
  * See `lib/overlay.ts` for the URL <-> state mapping.
  */
-export function ListingPage({ listing }: { listing: Listing }) {
+export function ListingPage({
+  listing,
+  slug,
+}: {
+  listing: Listing;
+  /** Identifies the listing to the booking API. */
+  slug: string;
+}) {
   const searchParams = useSearchParams();
 
   const overlay = overlayFromSearchParams(
@@ -170,7 +177,7 @@ export function ListingPage({ listing }: { listing: Listing }) {
           <aside className="w-booking-card-w shrink-0">
             <div className="sticky top-[calc(var(--spacing-nav-offset)+24px)] flex flex-col gap-4 pt-8">
               <PromoCard promo={listing.promo} />
-              <BookingCard listing={listing} />
+              <BookingCard listing={listing} slug={slug} />
             </div>
           </aside>
         </div>
