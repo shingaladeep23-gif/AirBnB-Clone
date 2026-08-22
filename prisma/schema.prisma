@@ -1,0 +1,287 @@
+// Data model for the listing clone.
+//
+// Shaped to the RENDERED PAGE rather than to a generic Airbnb API — this is a
+// single-listing clone, and over-generalising would cost parity work. It mirrors
+// `lib/types.ts` closely enough that the mapping in `lib/repository.ts` is a
+// straight projection with no reinterpretation.
+//
+// SQLite has no enums and no scalar lists, so:
+//   • status/currency are plain strings, constrained in the domain layer
+//   • ThingsToKnowGroup's items are child rows, not a string[]
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Listing {
+  id               String  @id @default(cuid())
+  slug             String  @unique
+  title            String
+  location         String
+  propertyType     String
+  description      String
+  guestFavouriteCopy String
+  guests           Int
+  bedrooms         Int
+  beds             Int
+  baths            Int
+  /// Nightly rate in whole rupees. Money is stored as an integer minor-unit-free
+  /// amount because floats cannot represent currency exactly.
+  nightlyPrice     Int
+  cleaningFee      Int
+  /// Basis points of the subtotal, so the fee is a rule rather than a magic number.
+  serviceFeeBps    Int
+  currency         String
+  rating           Float
+  reviewCount      Int
+  isGuestFavourite Boolean
+
+  photos           Photo[]
+  amenities        Amenity[]
+  reviews          Review[]
+  reviewTopics     ReviewTopic[]
+  categoryScores   CategoryScore[]
+  highlights       Highlight[]
+  sleepingArrangements SleepingArrangement[]
+  thingsToKnow     ThingsToKnowGroup[]
+  similarListings  SimilarListing[]
+  availability     Availability[]
+  reservations     Reservation[]
+  wishlists        Wishlist[]
+  host             Host?
+  promo            Promo?
+  locationInfo     LocationInfo?
+}
+
+model Photo {
+  id        String  @id
+  listingId String
+  src       String
+  alt       String
+  room      String?
+  width     Int
+  height    Int
+  sortOrder Int
+
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, sortOrder])
+}
+
+model Amenity {
+  id        String  @id
+  listingId String
+  label     String
+  icon      String
+  available Boolean
+  sortOrder Int
+
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, sortOrder])
+}
+
+model Review {
+  id           String  @id
+  listingId    String
+  authorName   String
+  authorAvatar String
+  body         String
+  rating       Int
+  /// Rendered exactly as the page shows it ("August 2025"); `sortOrder` carries
+  /// the ordering so the display string never has to be parsed.
+  date         String
+  authorTenure String?
+  sortOrder    Int
+
+  listing      Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, sortOrder])
+}
+
+model ReviewTopic {
+  id        String  @id
+  listingId String
+  label     String
+  icon      String
+  quote     String
+  sortOrder Int
+
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, sortOrder])
+}
+
+/// The six per-category scores in the reviews section.
+model CategoryScore {
+  id        String @id
+  listingId String
+  key       String
+  label     String
+  score     Float
+  sortOrder Int
+
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, key])
+}
+
+model Highlight {
+  id        String @id
+  listingId String
+  icon      String
+  title     String
+  subtitle  String
+  sortOrder Int
+
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model SleepingArrangement {
+  id          String @id
+  listingId   String
+  room        String
+  description String
+  icon        String
+  sortOrder   Int
+
+  listing     Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model ThingsToKnowGroup {
+  id        String @id
+  listingId String
+  heading   String
+  sortOrder Int
+
+  items     ThingsToKnowItem[]
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model ThingsToKnowItem {
+  id        String @id
+  groupId   String
+  text      String
+  sortOrder Int
+
+  group     ThingsToKnowGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model SimilarListing {
+  id           String @id
+  listingId    String
+  image        String
+  title        String
+  propertyType String
+  price        Int
+  nights       Int
+  rating       Float
+  sortOrder    Int
+
+  listing      Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model Host {
+  id              String  @id
+  listingId       String  @unique
+  name            String
+  avatar          String
+  isSuperhost     Boolean
+  hostingDuration String
+  reviewCount     Int
+  rating          Float
+  responseRate    String?
+  responseTime    String?
+
+  coHosts         CoHost[]
+  listing         Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model CoHost {
+  id        String @id
+  hostId    String
+  name      String
+  avatar    String
+  sortOrder Int
+
+  host      Host   @relation(fields: [hostId], references: [id], onDelete: Cascade)
+}
+
+model Promo {
+  id        String @id
+  listingId String @unique
+  headline  String
+  terms     String
+  ctaLabel  String
+  icon      String
+
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model LocationInfo {
+  id        String @id
+  listingId String @unique
+  heading   String
+  blurb     String
+
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+/// One row per calendar night. Only nights that DIFFER from the listing default
+/// need a row, but the seed writes a full window so "no row" unambiguously means
+/// "outside the bookable window" rather than "unknown".
+model Availability {
+  id            String  @id @default(cuid())
+  listingId     String
+  /// Midnight UTC of the night being stayed. Dates are handled as UTC midnight
+  /// everywhere; a local-midnight Date would shift the night across timezones.
+  date          DateTime
+  isBlocked     Boolean @default(false)
+  priceOverride Int?
+
+  listing       Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, date])
+  @@index([listingId, date])
+}
+
+/// A booking. `checkIn` is the first night stayed; `checkOut` is the morning of
+/// departure and is NOT a stayed night — so a stay occupies [checkIn, checkOut).
+model Reservation {
+  id         String   @id @default(cuid())
+  listingId  String
+  checkIn    DateTime
+  checkOut   DateTime
+  guests     Int
+  nights     Int
+  /// Every money field is server-computed. Nothing here is ever taken from the
+  /// client; see `lib/pricing.ts`.
+  subtotal   Int
+  cleaningFee Int
+  serviceFee Int
+  total      Int
+  currency   String
+  status     String   @default("confirmed")
+  createdAt  DateTime @default(now())
+
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, checkIn, checkOut])
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  listingId String
+  /// Anonymous browser session, not a user account — there is no auth in scope.
+  sessionId String
+  createdAt DateTime @default(now())
+
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, sessionId])
+}

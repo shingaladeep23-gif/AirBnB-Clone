@@ -274,17 +274,11 @@ export const listing: Listing = {
 };
 
 /**
- * Formats a price the way the reference does: whole rupees, grouped, no decimals.
- * Centralised so the booking card, the sticky nav's condensed price block and the
- * similar-listings rail can never drift apart on formatting.
+ * Re-exported so existing call sites keep working. The implementation moved to
+ * `lib/money.ts` when the API routes started building price labels: an API route
+ * has no business importing the 43-photo listing constant to format a number.
  */
-export function formatPrice(amount: number, currency: string): string {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
+export { formatPrice } from "./money";
 
 /**
  * Builds the capacity line: "3 guests · 1 bedroom · 1 bed · 1 bathroom".

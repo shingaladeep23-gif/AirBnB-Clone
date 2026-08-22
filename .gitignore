@@ -42,3 +42,10 @@ yarn-error.log*
 /Playpower Labs Assignment_ Airbnb-Clone App.pdf
 /Screenshot*.png
 /airbnb-listing-clone-submission.zip
+
+/lib/generated/prisma
+
+# Stray SQLite file created when DATABASE_URL is relative. The real database is
+# prisma/dev.db and is committed on purpose. See lib/db.ts.
+/dev.db
+*.db-journal

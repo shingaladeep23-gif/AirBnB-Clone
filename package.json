@@ -10,12 +10,22 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "check:tokens": "node scripts/check-tokens.mjs",
-    "verify": "npm run typecheck && npm run lint && npm run build && npm run check:tokens"
+    "verify": "npm run typecheck && npm run lint && npm run build && npm run check:tokens",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:reset": "prisma migrate reset --force"
   },
   "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "better-sqlite3": "^13.0.3",
     "next": "^16.2.12",
+    "prisma": "^7.9.1",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "server-only": "^0.0.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
@@ -26,6 +36,7 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.2",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.12",
     "typescript": "^5.9.0"
   }
 }
