@@ -21,7 +21,7 @@ export function HostRow({ host }: { host: Host }) {
         className="size-12 rounded-pill object-cover"
       />
       <div>
-        <p className="text-base font-semibold text-fg">Hosted by {host.name}</p>
+        <p className="text-base font-medium text-fg">Hosted by {host.name}</p>
         <p className="pt-0.5 text-sm text-subtle">
           {host.isSuperhost ? "Superhost · " : ""}
           {host.hostingDuration}

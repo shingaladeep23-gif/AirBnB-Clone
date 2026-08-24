@@ -128,7 +128,7 @@ export function DateRangePicker({
       className="absolute right-0 top-full z-30 mt-2 w-[680px] rounded-card border border-border bg-surface p-6 shadow-modal focus:outline-none"
     >
       <div className="flex items-center justify-between pb-4">
-        <p className="text-base font-semibold text-fg">
+        <p className="text-base font-medium text-fg">
           {selection.checkIn && !selection.checkOut
             ? BOOKING_COPY.calendar.promptCheckOut
             : BOOKING_COPY.calendar.promptCheckIn}
@@ -180,7 +180,7 @@ export function DateRangePicker({
         <button
           type="button"
           onClick={() => onSelect({ checkIn: null, checkOut: null })}
-          className="rounded-md px-3 py-1.5 text-sm font-semibold text-fg underline transition-colors duration-fast hover:bg-surface-hover"
+          className="rounded-md px-3 py-1.5 text-sm font-medium text-fg underline transition-colors duration-fast hover:bg-surface-hover"
         >
           {BOOKING_COPY.card.clearDates}
         </button>
@@ -210,7 +210,7 @@ function MonthGrid({
 
   return (
     <section aria-label={formatMonth(month)} className="flex-1">
-      <h3 className="pb-3 text-center text-sm font-semibold text-fg">
+      <h3 className="pb-3 text-center text-sm font-medium text-fg">
         {formatMonth(month)}
       </h3>
 
@@ -259,7 +259,7 @@ function MonthGrid({
               className={[
                 "mx-auto flex size-9 items-center justify-center rounded-pill text-sm transition-colors duration-fast",
                 selected
-                  ? "bg-fg font-semibold text-fg-inverse"
+                  ? "bg-fg font-medium text-fg-inverse"
                   : inRange
                     ? "bg-surface-hover text-fg"
                     : bookable

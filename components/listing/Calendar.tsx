@@ -35,7 +35,7 @@ const MONTHS = [
 export function Calendar({ listing }: { listing: Listing }) {
   return (
     <section className="py-8">
-      <h2 className="text-xl font-semibold text-fg">
+      <h2 className="text-xl font-medium text-fg">
         {listing.pricing.nights} nights in Candolim
       </h2>
       <p className="pt-1 text-sm text-subtle">Add your travel dates for exact pricing</p>
@@ -45,7 +45,7 @@ export function Calendar({ listing }: { listing: Listing }) {
           <div className="flex gap-16">
             {MONTHS.map((month) => (
               <div key={month.label} className="w-[300px]">
-                <p className="pb-4 text-center text-base font-semibold text-fg">
+                <p className="pb-4 text-center text-base font-medium text-fg">
                   {month.label}
                 </p>
                 <div className="grid grid-cols-7 gap-y-1">
@@ -88,7 +88,7 @@ export function Calendar({ listing }: { listing: Listing }) {
       <div className="flex justify-end pt-4">
         <button
           type="button"
-          className="rounded-md px-3 py-1.5 text-base font-semibold text-fg underline transition-colors duration-fast hover:bg-surface-hover"
+          className="rounded-md px-3 py-1.5 text-base font-medium text-fg underline transition-colors duration-fast hover:bg-surface-hover"
         >
           Clear dates
         </button>

@@ -20,13 +20,13 @@ export function WhereYouSleep({
 
   return (
     <section className="py-8">
-      <h2 className="text-xl font-semibold text-fg">Where you&rsquo;ll sleep</h2>
+      <h2 className="text-xl font-medium text-fg">Where you&rsquo;ll sleep</h2>
 
       <div className="flex gap-4 pt-6">
         {arrangements.map((arrangement) => (
           <div
             key={arrangement.id}
-            className="w-card-w rounded-card border border-border-subtle p-4"
+            className="w-card-w rounded-md border border-border-subtle p-4"
           >
             <span className="text-fg">
               <LineIcon name={arrangement.icon} size={24} />

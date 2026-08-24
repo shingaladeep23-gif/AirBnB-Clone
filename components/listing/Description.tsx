@@ -19,7 +19,7 @@ export function Description({ description }: { description: string }) {
       </p>
       <button
         type="button"
-        className="mt-3 flex items-center gap-1 text-base font-semibold text-fg underline"
+        className="mt-3 flex items-center gap-1 text-base font-medium text-fg underline"
       >
         Show more
         <span className="rotate-180">

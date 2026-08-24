@@ -18,6 +18,21 @@
  * NOTE ON PROVENANCE: these values are measured/derived from the reference render,
  * not copied from its stylesheet. No reference class names or minified CSS appear
  * anywhere in this project — see the no-lift-and-shift constraint on the board.
+ *
+ * ----------------------------------------------------------------------------
+ * EVERY NUMBER IN THIS FILE CARRIES A PROVENANCE TAG. This is not decoration.
+ *
+ *   MEASURED — a real computed value or getBoundingClientRect read off the live
+ *              reference on 24 Aug 2026 via CDP. Cite where it came from.
+ *   INFERRED — nobody has measured it; it is judgement that happens to look
+ *              right. Treat as a standing question, not as fact.
+ *
+ * The 18px hero-gallery radius shipped for weeks because it was written down
+ * with the same confidence as the numbers that had actually been checked. An
+ * unlabelled number is indistinguishable from a wrong one, so if you add a
+ * token without a tag you have reintroduced that bug class. Source of truth for
+ * every MEASURED tag below: `_reference/spec/captured/capture-listing.json`,
+ * summarised in `docs/spec/CAPTURE-FINDINGS.md`.
  */
 
 @theme {
@@ -75,50 +90,88 @@
   --color-border-strong: #222222;
 
   /* --------------------------------------------------------------------------
-   * TYPE SCALE — paired size/line-height, measured off the reference at 1910px.
-   * Airbnb's listing page runs a tight scale; these are the only sizes in use.
+   * TYPE SCALE — MEASURED. Every size below appears in the capture, and every
+   * size in the capture appears below. The old scale skipped 13/15/17/20px
+   * entirely, so those four sizes were being rendered at the nearest available
+   * rung (13→12 or 14, 15→16, 20→22) across the whole page.
+   *
+   * LINE HEIGHT IS A SINGLE RATIO: 1.43, unitless. That is not a guess — it
+   * reproduces every measured leading exactly: 10→14.3, 12→17.16, 13→18.59,
+   * 14→20.02, 15→21.45, 16→22.88, 17→24.31, 18→25.74, 20→28.6, 100→143. The
+   * only exceptions are the two heading rungs, which the reference overrides to
+   * a tighter absolute value (22→26, 26→30). The previous scale used ad-hoc
+   * leading per rung and was ~2px tight on almost every one, which compounded
+   * down the page.
    * ------------------------------------------------------------------------ */
-  --text-2xs: 0.625rem; /* 10px — uppercase field labels (CHECK-IN / CHECKOUT) */
-  --text-2xs--line-height: 0.875rem; /* 14px */
-  --text-xs: 0.75rem; /* 12px — legal, fine print */
-  --text-xs--line-height: 1rem; /* 16px */
-  --text-sm: 0.875rem; /* 14px — meta, captions, nav */
-  --text-sm--line-height: 1.125rem; /* 18px */
-  --text-base: 1rem; /* 16px — body copy */
-  --text-base--line-height: 1.25rem; /* 20px */
-  --text-lg: 1.125rem; /* 18px — subsection headings */
-  --text-lg--line-height: 1.375rem; /* 22px */
-  --text-xl: 1.375rem; /* 22px — section headings ("About this place") */
-  --text-xl--line-height: 1.625rem; /* 26px */
-  --text-2xl: 1.625rem; /* 26px — h1 listing title */
-  --text-2xl--line-height: 1.875rem; /* 30px */
-  --text-3xl: 2rem; /* 32px — large numerals */
-  --text-3xl--line-height: 2.25rem; /* 36px */
-  --text-hero: 5.75rem; /* 92px — the huge "4.95" in the reviews hero */
-  --text-hero--line-height: 1;
+  --text-2xs: 0.625rem; /* 10px MEASURED — uppercase CHECK-IN / CHECKOUT / GUESTS */
+  --text-2xs--line-height: 1.43;
+  --text-xs: 0.75rem; /* 12px MEASURED — "Show all photos", calendar weekday initials */
+  --text-xs--line-height: 1.43;
+  --text-meta: 0.8125rem; /* 13px MEASURED — review dates, tenure, "19 reviews" */
+  --text-meta--line-height: 1.43;
+  --text-sm: 0.875rem; /* 14px MEASURED — nav, meta, most controls */
+  --text-sm--line-height: 1.43;
+  --text-md: 0.9375rem; /* 15px MEASURED — review bodies, reviewer names, host prose */
+  --text-md--line-height: 1.43;
+  --text-base: 1rem; /* 16px MEASURED — body copy, amenity rows, capacity line */
+  --text-base--line-height: 1.43;
+  --text-tile: 1.0625rem; /* 17px MEASURED — initials inside letter-tile avatars */
+  --text-tile--line-height: 1.43;
+  --text-lg: 1.125rem; /* 18px MEASURED — rating-breakdown numerals */
+  --text-lg--line-height: 1.43;
+  --text-stat: 1.25rem; /* 20px MEASURED — host stat cells, guest-favourite numerals */
+  --text-stat--line-height: 1.43;
+  --text-xl: 1.375rem; /* 22px MEASURED — every h2, and the nightly price */
+  --text-xl--line-height: 1.625rem; /* 26px MEASURED — absolute override, not 1.43 */
+  --text-2xl: 1.625rem; /* 26px MEASURED — h1, and the host's name */
+  --text-2xl--line-height: 1.875rem; /* 30px MEASURED — absolute override, not 1.43 */
+  --text-hero: 6.25rem; /* 100px MEASURED — the huge "4.95" in the reviews hero */
+  --text-hero--line-height: 1.43;
+  /* REMOVED --text-3xl (32px): INFERRED, and no 32px text exists on the
+     reference. Its one call site (the host's name) measures 26px. */
 
   /* --------------------------------------------------------------------------
-   * FONT WEIGHTS — Cereal VF is a variable font (200–900). Airbnb leans on
-   * 400 / 500 / 600 and reserves 800 for the "Guest favourite" rating numerals.
+   * FONT WEIGHTS — MEASURED, and narrower than we assumed. Across all 292
+   * captured text nodes the reference uses exactly three weights: 400, 500 and
+   * 700. There is no 600 anywhere, and no 800.
+   *
+   * 700 appears in only two places: the 10px uppercase booking-card labels, and
+   * the 20px guest-favourite numerals. Everything that reads as "bold" — every
+   * heading, every button, the host name, the 100px rating — is 500.
+   *
+   * `semibold` and `extrabold` are deliberately absent so they cannot be reached
+   * from a component. We shipped 48 call sites at 600; that is the "the bold of
+   * the text is wrong" report, and re-adding the rung invites it straight back.
    * ------------------------------------------------------------------------ */
-  --font-weight-light: 300;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
-  --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  --font-weight-extrabold: 800;
 
   /* --------------------------------------------------------------------------
-   * RADII — Airbnb's rounding vocabulary.
+   * RADII — the reference's whole rounding vocabulary is four values: 8, 12, 16
+   * and fully-round. Everything else we had was invented.
+   *
+   * The header's search segments measure 40px and "Become a host" measures 22px,
+   * but both sit on boxes shorter than twice those radii (48px and 44px), so the
+   * browser clamps them to a capsule. They are `pill` for our purposes; there is
+   * no separate rung to add.
    * ------------------------------------------------------------------------ */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px; /* small controls, thumbnails */
-  --radius-card: 12px; /* booking card, inputs */
-  --radius-lg: 16px;
-  --radius-xl: 18px; /* hero gallery corners */
-  --radius-2xl: 24px;
-  --radius-pill: 999px; /* segmented pills, avatar, icon buttons */
+  --radius-md: 8px; /* MEASURED — Share/Save, "Show all photos", Claim, Message
+                       host, sleeping-arrangement photos, tour thumbnails, the
+                       map button, the free-cancellation panel */
+  --radius-card: 12px; /* MEASURED — the hero gallery's clipping wrapper, the
+                          similar-listing photos, and the two "Show all …"
+                          buttons (amenities, reviews) */
+  --radius-lg: 16px; /* MEASURED — the review-topic chips, and only those */
+  --radius-pill: 999px; /* MEASURED — Reserve, avatars, icon buttons, the header
+                           search segments */
+  /* REMOVED --radius-xs (4px) and --radius-sm (6px): INFERRED, zero call sites.
+     REMOVED --radius-xl (18px): INFERRED, and the defect itself. It clipped the
+     hero gallery at 18px where the reference clips at 12px — "the image corners
+     are too curved". It was written next to measured numbers with no way to tell
+     them apart, which is why the whole file is now tagged.
+     REMOVED --radius-2xl (24px): INFERRED; its one call site was the host card,
+     which is not a measurable box in the capture — see `rounded-card` there. */
 
   /* --------------------------------------------------------------------------
    * SHADOWS — elevation ladder.
@@ -137,33 +190,59 @@
    * geometry are tokenised because several views need the same numbers.
    * Desktop-only: there are deliberately no breakpoint tokens here.
    * ------------------------------------------------------------------------ */
-  /* Canonical viewport is 1910x1000 (body 1895). Values marked EXACT come from
-     getBoundingClientRect on the reference; APPROX ones are screenshot-derived
-     (±5px) and are expected to be corrected by pixel diff. */
-  --container-content: 1120px; /* EXACT-ish: centred, spans x387..x1507 */
-  --spacing-header-h: 88px; /* EXACT: 88px content + 1px hairline = 89px bar */
-  --spacing-header-inset: 80px; /* EXACT: inner container inset each side */
-  --spacing-search-pill-w: 404px; /* EXACT: x746, 404x48 */
-  --spacing-search-pill-h: 48px; /* EXACT */
-  --spacing-section-nav-h: 64px; /* EXACT: sticky anchor bar */
-  --spacing-nav-offset: 153px; /* header 89 + section nav 64 — anchor scroll offset */
-  --spacing-title-row-h: 85px; /* derived: header ends y89, gallery starts y174 */
-  --spacing-gallery-h: 490px; /* APPROX: y174 -> y665 */
-  --spacing-gallery-gap: 8px; /* APPROX: gutter between hero tiles */
-  /* Two-column body split (CONVENTION, per BELOW-FOLD-SPEC §2): 675 + 75 + 370
-     = 1120. The 1120 total is measured; the split is not. Sections 3-9 sit in
-     the left column; from Reviews down, sections run the full 1120. */
-  --spacing-col-gap: 75px;
-  --spacing-booking-card-w: 370px; /* right-hand sticky column width */
-  --spacing-content-col-w: 675px; /* left-hand content column width */
-  --spacing-map-h: 480px; /* "Where you'll be" map block, 1120x480 */
-  --spacing-similar-card-w: 254px; /* 4x254 + 3x32 gutters = 1112, fits 1120 */
-  --spacing-card-w: 400px; /* standard card in a content column (sleeping, host) */
-  /* These two share a value but not a meaning — one is a table column, the other
-     a chip. Kept separate so tuning one can't silently move the other. */
-  --spacing-rating-col-w: 220px; /* "Overall rating" column in the breakdown */
-  --spacing-topic-chip-w: 220px; /* review-topic chip card */
-  --spacing-laurel-h: 150px; /* laurel wreath height in the reviews hero */
+  /* Canonical viewport is 1910x1000 (body 1895), page height 6266. */
+  --container-content: 1120px; /* MEASURED: every full-width h2 is exactly 1120 wide at x387.5 */
+  --spacing-header-h: 88px; /* MEASURED: 88px content + 1px hairline = 89px bar */
+  --spacing-header-inset: 80px; /* MEASURED: inner container inset each side */
+  --spacing-search-pill-w: 404px; /* INFERRED: the pill wrapper carries no text or
+                                     image, so it never entered the capture. Its
+                                     three segments measure x760.44 -> x1094.55. */
+  --spacing-search-pill-h: 48px; /* MEASURED: all three segments are h48 */
+  --spacing-section-nav-h: 64px; /* MEASURED: the anchor links measure h64.02 */
+  --spacing-nav-offset: 153px; /* MEASURED: header 89 + section nav 64 */
+  --spacing-title-row-h: 85px; /* MEASURED: header ends y89, gallery starts y174 */
+
+  /* Hero gallery — MEASURED, and it is not a 1fr/1fr split.
+       large tile   560x494 at x387.5, y174
+       four tiles   272x243 at x955.5 / x1235.5, y174 / y425
+       gap          8px both axes (955.5 - 947.5; 425 - 417)
+     The left column is exactly half the container (560) and the right column
+     takes what is left after the gutter (552 = 272 + 8 + 272). A 1fr/1fr grid
+     gives 556/556 with 274x241 tiles — wrong on all four numbers. */
+  --spacing-gallery-h: 494px; /* MEASURED: y174 -> y668 */
+  --spacing-gallery-hero-w: 560px; /* MEASURED: the large left tile */
+  --spacing-gallery-gap: 8px; /* MEASURED */
+
+  /* Two-column body split — MEASURED, and 23px narrower on the left than we
+     shipped. The three h2s that sit in the left column ("Entire serviced
+     apartment", "Where you'll sleep", "What this place offers") all measure
+     exactly 652 wide, against 1120 for the full-width ones below them. The
+     booking card's Reserve button spans x1160.5..x1482.5, which puts the 370px
+     card at x1136.5 — so the gutter is 97, not 75. Sections 3-9 sit in the left
+     column; from Reviews down, sections run the full 1120. */
+  --spacing-content-col-w: 652px; /* MEASURED */
+  --spacing-col-gap: 97px; /* MEASURED */
+  --spacing-booking-card-w: 370px; /* MEASURED: Reserve 322 + 24 padding each side */
+
+  --spacing-map-h: 480px; /* INFERRED: the map renders as a background image and
+                             so has no captured box. Section spans y4136..y4988. */
+  --spacing-similar-card-w: 208px; /* MEASURED: the photos are 208x208 SQUARE on a
+                                      228px pitch — not 254 at 3:2 */
+  --spacing-similar-card-gap: 20px; /* MEASURED: 228 pitch - 208 card */
+  --spacing-card-w: 318px; /* MEASURED: sleeping-arrangement photos are 318x212 at
+                              x387.5 and x721.5 — 318 + 16 + 318 = 652, i.e.
+                              exactly two cards to the content column */
+  --spacing-button-lg-h: 49px; /* MEASURED: "Show all 50 amenities" is 205.25x49
+                                  and "Show all 19 reviews" is 187.05x49. Every
+                                  other button on the page is h48 or h35, so this
+                                  one-pixel rung is real and deliberate. */
+  --spacing-rating-col-w: 220px; /* INFERRED: the "Overall rating" histogram
+                                    column has no measurable box */
+  /* REMOVED --spacing-topic-chip-w (220px): INFERRED, and wrong in kind rather
+     than in value. The review-topic chips are content-sized — measured widths
+     run 115 ("Decor 2") to 166 ("Indoor spaces 2") — at a fixed h48 with a 16px
+     radius. No fixed width can express that, so the token had to go. */
+  --spacing-laurel-h: 150px; /* INFERRED: the laurel images were not captured */
 
   /* --------------------------------------------------------------------------
    * MOTION — the reference is restrained: short, ease-out transitions.

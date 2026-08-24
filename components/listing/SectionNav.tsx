@@ -76,7 +76,7 @@ export function SectionNav({ listing }: { listing: Listing }) {
 
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-sm font-semibold text-fg">
+            <p className="text-sm font-medium text-fg">
               {formatPrice(listing.pricing.total, listing.pricing.currency)}
             </p>
             <p className="text-xs text-subtle">
@@ -95,7 +95,7 @@ export function SectionNav({ listing }: { listing: Listing }) {
           <button
             type="button"
             tabIndex={revealed ? undefined : -1}
-            className="h-10 rounded-md bg-gradient-to-r from-cta-from via-cta-via to-cta-to px-6 text-sm font-semibold text-fg-inverse transition-opacity duration-fast hover:opacity-95"
+            className="h-10 rounded-md bg-gradient-to-r from-cta-from via-cta-via to-cta-to px-6 text-sm font-medium text-fg-inverse transition-opacity duration-fast hover:opacity-95"
           >
             Reserve
           </button>

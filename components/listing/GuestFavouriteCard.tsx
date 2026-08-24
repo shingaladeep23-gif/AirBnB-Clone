@@ -30,7 +30,7 @@ export function GuestFavouriteCard({ listing }: { listing: Listing }) {
           className="h-11 w-auto"
         />
         <div className="text-center">
-          <p className="text-lg font-semibold leading-tight text-fg">
+          <p className="text-md font-medium leading-tight text-fg">
             Guest favourite
           </p>
           <p className="max-w-[220px] pt-0.5 text-xs text-subtle">
@@ -48,7 +48,7 @@ export function GuestFavouriteCard({ listing }: { listing: Listing }) {
 
       <div className="flex items-center gap-8 pr-2">
         <div className="text-center">
-          <p className="text-xl font-semibold text-fg">{listing.rating}</p>
+          <p className="text-stat font-bold text-fg">{listing.rating}</p>
           <div
             className="flex items-center justify-center gap-0.5 pt-1 text-fg"
             aria-hidden="true"
@@ -60,8 +60,8 @@ export function GuestFavouriteCard({ listing }: { listing: Listing }) {
         </div>
 
         <div className="text-center">
-          <p className="text-xl font-semibold text-fg">{listing.reviewCount}</p>
-          <p className="pt-1 text-xs font-medium text-fg underline">Reviews</p>
+          <p className="text-stat font-bold text-fg">{listing.reviewCount}</p>
+          <p className="pt-1 text-meta font-medium text-fg underline">Reviews</p>
         </div>
       </div>
     </section>

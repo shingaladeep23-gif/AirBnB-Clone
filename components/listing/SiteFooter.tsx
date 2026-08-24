@@ -53,7 +53,7 @@ export function SiteFooter() {
         <div className="grid grid-cols-3 gap-8 pb-10">
           {COLUMNS.map((column) => (
             <div key={column.heading}>
-              <h3 className="text-sm font-semibold text-fg">{column.heading}</h3>
+              <h3 className="text-sm font-medium text-fg">{column.heading}</h3>
               <ul className="pt-4">
                 {column.links.map((link) => (
                   <li key={link} className="pb-3">

@@ -61,7 +61,7 @@ export function ReservationConfirmation({
       >
         <CheckCircleIcon size={40} className="text-rausch" />
 
-        <h2 className="pt-4 text-2xl font-semibold text-fg">
+        <h2 className="pt-4 text-2xl font-medium text-fg">
           {BOOKING_COPY.confirmation.heading}
         </h2>
         <p className="pt-1 text-base text-subtle">
@@ -90,7 +90,7 @@ export function ReservationConfirmation({
         <button
           type="button"
           onClick={onClose}
-          className="mt-6 h-12 w-full rounded-card bg-gradient-to-r from-cta-from via-cta-via to-cta-to text-base font-semibold text-fg-inverse transition-opacity duration-fast hover:opacity-95"
+          className="mt-6 h-12 w-full rounded-pill bg-gradient-to-r from-cta-from via-cta-via to-cta-to text-base font-medium text-fg-inverse transition-opacity duration-fast hover:opacity-95"
         >
           {BOOKING_COPY.confirmation.done}
         </button>

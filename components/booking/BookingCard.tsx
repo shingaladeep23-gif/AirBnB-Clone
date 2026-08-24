@@ -231,7 +231,7 @@ export function BookingCard({ listing, slug }: { listing: Listing; slug: string 
       className="relative rounded-card border border-border bg-surface p-6 shadow-card"
     >
       <p className="flex items-baseline gap-1.5">
-        <span className="text-xl font-semibold text-fg">{headline.amount}</span>
+        <span className="text-xl font-medium text-fg">{headline.amount}</span>
         <span className="text-base text-fg">{headline.suffix}</span>
       </p>
 
@@ -260,7 +260,7 @@ export function BookingCard({ listing, slug }: { listing: Listing; slug: string 
             className="flex w-full items-center justify-between border-t border-border px-3 py-2.5 text-left transition-colors duration-fast hover:bg-surface-hover"
           >
             <span>
-              <span className="block text-2xs font-semibold uppercase tracking-wide text-fg">
+              <span className="block text-2xs font-bold uppercase tracking-wide text-fg">
                 {BOOKING_COPY.card.guestsLabel}
               </span>
               <span className="block pt-0.5 text-sm text-fg">
@@ -306,7 +306,7 @@ export function BookingCard({ listing, slug }: { listing: Listing; slug: string 
         type="button"
         onClick={handleReserve}
         disabled={reserving || quoting}
-        className="mt-4 h-12 w-full rounded-card bg-gradient-to-r from-cta-from via-cta-via to-cta-to text-base font-semibold text-fg-inverse transition-opacity duration-fast hover:opacity-95 disabled:opacity-60"
+        className="mt-4 h-12 w-full rounded-pill bg-gradient-to-r from-cta-from via-cta-via to-cta-to text-base font-medium text-fg-inverse transition-opacity duration-fast hover:opacity-95 disabled:opacity-60"
       >
         {reserving ? BOOKING_COPY.card.reserving : BOOKING_COPY.card.reserve}
       </button>
@@ -359,7 +359,7 @@ function DateField({
       aria-expanded={active}
       className={`px-3 py-2.5 text-left transition-colors duration-fast hover:bg-surface-hover ${className}`}
     >
-      <span className="block text-2xs font-semibold uppercase tracking-wide text-fg">
+      <span className="block text-2xs font-bold uppercase tracking-wide text-fg">
         {label}
       </span>
       <span
@@ -385,10 +385,10 @@ function PriceBreakdown({ quote }: { quote: Quote }) {
       ))}
 
       <div className="mt-3 flex items-baseline justify-between border-t border-border pt-4">
-        <span className="text-base font-semibold text-fg">
+        <span className="text-base font-medium text-fg">
           {BOOKING_COPY.card.totalLabel}
         </span>
-        <span className="text-base font-semibold text-fg">
+        <span className="text-base font-medium text-fg">
           {formatPrice(quote.total, quote.currency)}
         </span>
       </div>
