@@ -67,7 +67,8 @@
   /* --------------------------------------------------------------------------
    * SURFACE — page and component backgrounds.
    * `surface-sunken` is the grey wash behind inset panels and image placeholders.
-   * `surface-overlay` is the opaque black backdrop behind the Lightbox.
+   * `surface-overlay` is the opaque WHITE backdrop behind the Lightbox — see the
+   * measurement note on the token itself before assuming otherwise.
    * ------------------------------------------------------------------------ */
   --color-surface: #ffffff;
   --color-surface-sunken: #f7f7f7;
