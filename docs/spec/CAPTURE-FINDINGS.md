@@ -309,3 +309,83 @@ text. **Keep ours.** Empty alt on content images is an accessibility failure, th
 brief grades accessibility explicitly, and alt text is not visible — so this
 costs nothing in visual parity and is the one place we should knowingly diverge.
 Record it as a deliberate divergence, not an oversight.
+
+---
+
+# Lightbox ("Photo viewer") — the third graded view, measured
+
+Captured by `_reference/tools/cdp-lightbox.mjs` → `capture-lightbox.json`, which
+walks the whole interaction: open tour → open viewer → ArrowRight → ArrowLeft →
+Escape → cold deep-link.
+
+## The backdrop is WHITE
+
+`rgb(255, 255, 255)`, `z-index: 140`, `position: fixed`,
+`transition: opacity 0.25s`.
+
+Worth stating loudly because every instinct says a photo lightbox is black, and
+an 0.25s opacity transition is easy to miss entirely. Check what we ship.
+
+## URL contract — we diverge, and the divergence is real
+
+The viewer is indexed by **`modalItem=`**, base **1000**:
+
+```
+?modal=PHOTO_TOUR_SCROLLABLE&modalItem=1000   first photo
+?modal=PHOTO_TOUR_SCROLLABLE&modalItem=1001   after ArrowRight
+```
+
+We use `&photo=<index>`. Different param name, different base.
+
+**And loading either URL cold renders nothing at all.** Measured: navigating
+directly to `?modal=PHOTO_TOUR_SCROLLABLE&modalItem=1000` produces zero visible
+dialogs and zero images. The reference *writes* overlay state to the URL but
+never *reads* it on boot.
+
+Our clone honours the deep link, and `behaviour.mjs` asserts that it does. That
+is strictly better — a copied URL that opens the right photo is the whole point
+of putting state in the URL — and nothing in the brief asks for the broken
+version. **Keep ours. Log it as a deliberate divergence**, alongside the alt-text
+and `aria-modal` decisions.
+
+## Layering, focus and dismissal
+
+- The viewer **stacks on top of** the tour; it does not replace it. Both dialogs
+  stay mounted with content.
+- **Escape from the viewer returns to the tour**, not to the listing — the URL
+  drops back to `?modal=PHOTO_TOUR_SCROLLABLE` and the tour's 52 image slots are
+  live again. Two-level dismissal, which is what we already implement.
+- `body` overflow is `hidden` while open (scroll lock confirmed).
+- ArrowRight/ArrowLeft move the index and are reflected in the URL each step.
+
+## Caption — and the real photo count
+
+The caption reads:
+
+```
+Living room 1
+1 of 43
+```
+
+**43 photos, not 52.** The 52 `<img>` elements in the tour are 43 photos plus the
+9 filmstrip thumbnails. Anywhere we print a total, it is 43.
+
+## Controls — four, all 40×40, all `border-radius: 50%`
+
+| aria-label | x | y | background | border |
+|---|---|---|---|---|
+| Show all photos | 16 | 16 | transparent | none |
+| Close | 1846 | 16 | transparent | none |
+| Previous | 20 | 480 | `rgb(255,255,255)` | `1px solid rgb(204,204,204)` |
+| Next | 1850 | 480 | `rgb(255,255,255)` | `1px solid rgb(34,34,34)` |
+
+Note the top-left control is labelled **"Show all photos"** — it returns to the
+tour rather than closing outright, which matches the two-level dismissal above.
+
+**One thing NOT to take on faith.** Previous and Next have different border
+colours (`#ccc` vs `#222`) in this capture, which was taken at `modalItem=1000`
+— the first photo. That is *consistent with* Previous rendering a disabled or
+de-emphasised state at index 0, but it is equally consistent with a hover or
+focus state captured mid-interaction. **Re-measure at a middle index before
+implementing either reading.** Recorded as an observation, not a fact — pinning
+an unverified number is exactly how the 18px radius got into the codebase.
