@@ -20,20 +20,35 @@
 // happens on either.
 //
 // Usage:  node scripts/check-copy-verbatim.mjs [url]
-//         defaults to http://localhost:3000
+//         With no url it starts its own production server and stops it again.
 //
-// SKIPS CLEANLY when the capture is absent — `_reference/` is gitignored, so a
-// fresh clone has the components but not the raw capture. A missing capture is
-// not a failure; a contradicted one is.
+// EXACTLY ONE CONDITION SKIPS GREEN: a missing capture. `_reference/` is
+// gitignored, so a fresh clone genuinely cannot have it, and saying so is the
+// honest outcome — the same reasoning as `check:photos`.
+//
+// EVERYTHING ELSE IS A HARD FAILURE, and that distinction was got wrong once
+// already. This script used to skip green whenever it could not reach or render
+// a page. Since it is wired into `npm run verify`, and `verify` builds but never
+// starts a server, it would have skipped on every single run — `verify` going
+// green having asserted nothing about the copy. That is worse than not having
+// the check, because it reads as coverage. `check:tokens` had it right all along:
+// no built CSS is `process.exit(2)`, not a shrug.
+//
+// The unreachable-server case is fixed by removing the precondition rather than
+// by demanding the caller satisfy it: with no url argument this starts its own
+// server on an ephemeral port and shuts it down afterwards, so `verify` stays a
+// single command and there is no cross-platform server orchestration in an npm
+// script. If that fails, it fails loudly.
 
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { spawn } from "node:child_process";
 import { chromium } from "./playwright.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const capturePath = resolve(root, "_reference/spec/captured/capture-listing.json");
-const url = process.argv[2] || "http://localhost:3000";
+const explicitUrl = process.argv[2];
 
 if (!existsSync(capturePath)) {
   console.log("check:copy — SKIPPED (no capture at _reference/spec/captured/)");
@@ -42,6 +57,54 @@ if (!existsSync(capturePath)) {
 
 const capture = JSON.parse(readFileSync(capturePath, "utf8"));
 
+const die = (msg) => {
+  console.error(`check:copy — FAIL: ${msg}`);
+  process.exit(2);
+};
+
+const reachable = async (u) => {
+  try {
+    const r = await fetch(u, { signal: AbortSignal.timeout(3000) });
+    return r.ok;
+  } catch {
+    return false;
+  }
+};
+
+// --- get a server ----------------------------------------------------------
+// An explicitly-passed url is never second-guessed: if the operator named a
+// target and it is down, that is a failure, not an invitation to substitute a
+// different server and report on that instead.
+let url = explicitUrl;
+let server = null;
+
+if (url) {
+  if (!(await reachable(url))) die(`${url} is not reachable. Start it, or run with no argument to have this script start its own.`);
+} else {
+  if (!existsSync(resolve(root, ".next/BUILD_ID"))) {
+    die("no production build under .next — run `npm run build` first.");
+  }
+  const port = 3199; // deliberately not 3000/3100/3101, which humans and other agents use
+  url = `http://localhost:${port}`;
+  if (await reachable(url)) {
+    die(`port ${port} is already in use. It is reserved for this check, so something is stale — free it and re-run.`);
+  }
+  server = spawn(process.execPath, [resolve(root, "node_modules/next/dist/bin/next"), "start", "-p", String(port)], {
+    cwd: root,
+    env: { ...process.env, NODE_ENV: "production" },
+    stdio: "ignore",
+  });
+  const deadline = Date.now() + 60000;
+  while (!(await reachable(url))) {
+    if (server.exitCode !== null) die(`the server exited with code ${server.exitCode} before becoming ready.`);
+    if (Date.now() > deadline) { server.kill(); die(`the server did not become ready on ${url} within 60s.`); }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+}
+
+const stopServer = () => { if (server && server.exitCode === null) server.kill(); };
+
+// --- render ----------------------------------------------------------------
 // A REAL DOM is required, not the served HTML. The page streams its content as
 // an RSC flight payload inside <script> tags, so scraping the initial HTML finds
 // the strings only in escaped, chunk-split form — which reports every string as
@@ -59,11 +122,17 @@ try {
   await page.waitForFunction(() => document.body.innerText.length > 2000, null, { timeout: 20000 });
   ours = await page.evaluate(() => document.body.innerText);
 } catch (e) {
-  console.log(`check:copy — SKIPPED (could not render ${url}: ${String(e.message).split(/\r?\n/)[0]})`);
   await browser.close();
-  process.exit(0);
+  stopServer();
+  // A STALE `next start` IS THE CASE THIS CATCHES. It answers 200 with a shell
+  // whose JS chunks 404, so the page renders blank: every liveness check passes
+  // and no content ever appears. That used to land here and report SKIPPED,
+  // which is precisely the silent-green failure this script is now built to
+  // refuse. Rebuild and restart the server before blaming the checker.
+  die(`${url} answered but never rendered the listing (${String(e.message).split(/\r?\n/)[0]}). If a server was already running, it is serving a STALE build — rebuild and restart it.`);
 }
 await browser.close();
+stopServer();
 
 // Text nodes the reference renders but which are not copy we own, or which no
 // comparison of this kind can settle. Every entry needs a reason.

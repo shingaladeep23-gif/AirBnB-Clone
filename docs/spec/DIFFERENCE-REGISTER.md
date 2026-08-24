@@ -240,8 +240,41 @@ decisions in it are load-bearing:
    come from our CSS box model rather than from our copy.
 
 Current state: **113 of 121 reference strings verbatim**, with the 8 failures
-filed above as A27–A33. Wired into `npm run verify` as `check:copy`; skips
-cleanly when the gitignored capture is absent.
+filed above as A27–A33. Wired into `npm run verify` as `check:copy`.
+
+### Exactly one condition skips green
+
+That distinction was got wrong once, and the way it was wrong is worth keeping
+on the record. The first version skipped green whenever it could not reach or
+render a page. It is wired into `npm run verify`, and `verify` builds but never
+*starts* a server — so it would have skipped on every single run, and `verify`
+would have gone green having asserted nothing whatsoever about the copy.
+**That is worse than not having the check, because it reads as coverage.**
+
+The exit codes now mean:
+
+| Code | Meaning |
+|---|---|
+| 0 | passed, **or** the gitignored capture is absent — the one honest skip, same reasoning as `check:photos` |
+| 1 | real content differences found |
+| 2 | a precondition failed — no build, no server, port in use, or the page never rendered |
+
+The unreachable-server case was fixed by **removing the precondition rather than
+demanding the caller satisfy it**: run with no argument and the script starts its
+own production server on port 3199 and shuts it down again, so `verify` stays a
+single command with no cross-platform server orchestration in an npm script. An
+explicitly-passed URL is never second-guessed — if the operator named a target
+and it is down, that is a failure, not an invitation to quietly measure a
+different server instead.
+
+**The stale-server case is now a hard failure with the right diagnosis**, which
+is the second half of the same bug. A stale `next start` answers 200 with a
+shell whose JS chunks 404, so the page renders blank: every liveness check
+passes and no content ever appears. That used to land in the catch-all and
+report SKIPPED. It now says so and exits 2.
+
+`check:tokens` had this right all along — no built CSS is `process.exit(2)`,
+not a shrug — and is the precedent the fix follows.
 
 ---
 
