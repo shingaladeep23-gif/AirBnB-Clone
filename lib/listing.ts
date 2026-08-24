@@ -10,50 +10,63 @@ import { PHOTO_FILES } from "./photos";
  * the server. Same pixels, no spinner.
  *
  * ============================ PROVENANCE — READ THIS ============================
- * Strings here come from two different places, and the difference matters:
+ * Every string below is TRANSCRIBED FROM THE LIVE REFERENCE. Nothing here is
+ * authored.
  *
- *   CAPTURED — transcribed from `_reference/spec/REFERENCE-SPEC.md`, measured off
- *   the live reference while the browser extension worked. Title, subtitle,
- *   capacity, rating, review count, guest-favourite copy, price, promo copy.
+ * Source: `_reference/spec/captured/capture-listing.json` and
+ * `capture-amenities.json`, captured 24 Aug 2026 at 1910x1000 DPR 1 by attaching
+ * over CDP to a real Chrome session (`docs/spec/CAPTURE-FINDINGS.md` records the
+ * method and why the earlier Playwright attempts could not work). The summary
+ * table of what changed, field by field, is in that same document.
  *
- *   AUTHORED — original copy written for this listing (Goa 1BHK serviced
- *   apartment, jacuzzi, Candolim). The real strings are unobtainable: the
- *   reference blocks automated access and the capture channel is down. Michael
- *   decided (21 Aug) to write plausible copy rather than ship empty sections, and
- *   to DISCLOSE it in the README. It is not passed off as captured.
+ * This replaces an earlier CAPTURED/AUTHORED split. Until the capture channel
+ * opened, roughly half this file was plausible copy written to fit the listing
+ * under a documented ruling. It read fine and it was wrong — the host had 1,463
+ * reviews, not 218; there were 8 co-hosts, not 3. That is why the rule below is
+ * absolute rather than a preference.
  *
- * Every authored field is marked AUTHORED below. All copy lives in this module and
- * never inline in JSX, so replacing it with the real strings is a data edit rather
- * than a component rewrite — that is the whole point of keeping it here.
+ * THE RULE: if a value is not in the capture JSON, it does not go in this file.
+ * Add nothing from inference, from what Airbnb usually shows, or from what reads
+ * better. A missing field is a capture question, not a writing prompt.
+ *
+ * Transcription is exact, including the reference's own mistakes — the lowercase
+ * "the host nitish", the doubled "Great great", the space before the comma in
+ * "out there ,", and the curly U+2019 apostrophes. Those are in the source. Do
+ * not tidy them; tidying them is a difference.
+ *
+ * ONE DELIBERATE DIVERGENCE: every `<img>` on the reference carries `alt=""`.
+ * We ship descriptive alt text instead (see `lib/photos.ts`). Empty alt on
+ * content imagery is an accessibility failure, alt text is not visible, and so
+ * this costs nothing in visual parity. It is a knowing choice, not an oversight.
  * ==============================================================================
  */
 
 /**
- * Gallery photos: the reference's own 43 files, in Airbnb's room order, with
- * room-aware descriptive alt text. See `lib/photos.ts` — it is generated from
- * disk plus the verified room mapping, so it is the single source of truth for
- * photo order, grouping and alt text.
+ * Gallery photos: the reference's own files, in its room order, with room-aware
+ * descriptive alt text. See `lib/photos.ts`.
  */
 const photos: ListingPhoto[] = PHOTO_FILES;
 
-/** The 10 review-topic chips. Labels/icons EVIDENCE (decoded); quotes AUTHORED. */
+/**
+ * The 10 review-topic chips, in the reference's order, each with the number of
+ * reviews that mentioned it. The number is what the chip renders.
+ */
 const reviewTopics = [
-  ["hot-tub", "Hot tub", "The jacuzzi was spotless and ready the moment we arrived."],
-  ["indoor-spaces", "Indoor spaces", "The bedroom stayed cool and dark right through the afternoon."],
-  ["decor", "Decor", "Thoughtfully styled — it photographs even better in person."],
-  ["comfort", "Comfort", "The bed and linens made it easy to sleep in every morning."],
-  ["hospitality", "Hospitality", "Check-in was effortless and every question got a quick reply."],
-  ["amenities", "Amenities", "Everything we needed was already there, down to the kitchen basics."],
-  ["cleanliness", "Cleanliness", "Immaculate on arrival and serviced without us having to ask."],
-  ["condition", "Condition", "The apartment feels new — nothing worn or in need of repair."],
-  ["accuracy", "Accuracy", "Exactly what the listing showed, right down to the layout."],
-  ["location", "Location", "A short walk to Candolim beach with cafes on the same street."],
+  ["comfort", "Comfort", 6],
+  ["accuracy", "Accuracy", 5],
+  ["hot-tub", "Hot tub", 5],
+  ["condition", "Condition", 4],
+  ["hospitality", "Hospitality", 8],
+  ["cleanliness", "Cleanliness", 4],
+  ["amenities", "Amenities", 2],
+  ["decor", "Decor", 2],
+  ["indoor-spaces", "Indoor spaces", 2],
+  ["location", "Location", 2],
 ] as const;
 
 export const listing: Listing = {
   id: "mirashya-ug10-candolim",
 
-  // ---- CAPTURED ----
   title: "Romantic Jacuzzi 1BHK Candolim | Mirashya UG10",
   location: "Candolim, Goa, India",
   propertyType: "Entire serviced apartment in Candolim, India",
@@ -63,6 +76,8 @@ export const listing: Listing = {
   isGuestFavourite: true,
   guestFavouriteCopy:
     "One of the most loved homes on Airbnb, according to guests",
+  guestFavouriteReviewsCopy:
+    "This home is a guest favourite based on ratings, reviews and reliability",
   pricing: { total: 28499, currency: "INR", nights: 5 },
   promo: {
     headline: "Get 10% off your next stay.",
@@ -73,203 +88,260 @@ export const listing: Listing = {
 
   photos,
 
-  // ---- AUTHORED ----
-  // FACTUAL CONSTRAINT (verified from the photo set): this is a 1BHK whose
-  // living space IS its private courtyard — there is no separate lounge. Six of
-  // the 43 photos show a sibling unit in the same building, not this flat, so
-  // nothing here may describe a leather-sofa living room. Copy stays on the
-  // bedroom, the courtyard, the jacuzzi and the shared building facilities.
+  /*
+    One paragraph, emoji-led, exactly as the host wrote it. The apostrophe in
+    "it's" is U+2019 and the beach emoji is followed by U+FE0F — both are in the
+    source, and both are the kind of thing a retype silently loses.
+  */
   description:
-    "Unwind in a one-bedroom serviced apartment a few minutes from Candolim " +
-    "beach, built around a private walled courtyard with its own jacuzzi.\n\n" +
-    "The courtyard is the heart of the place: the bedroom opens straight onto " +
-    "it, and it's where you'll end up eating, drinking and drying off after the " +
-    "beach. The jacuzzi sits in one corner, screened for privacy, and the dining " +
-    "table takes the shade in the afternoon. Inside, the bedroom is dark wood and " +
-    "cool tile with air conditioning, a ceiling fan and an ensuite with a walk-in " +
-    "shower.\n\nThe apartment is serviced between stays, and the building adds a " +
-    "shared pool, a gym and a laundry and utility area, with secure parking and " +
-    "backup power. Fort Aguada, Sinquerim and the Saturday night market are all " +
-    "a short drive.",
+    "\u{1F334} Plan Your Relaxing Holiday at Amor De Goa by Mirashya Homes! " +
+    "✨ Stay in this cozy 1BHK in the heart of Candolim, featuring a " +
+    "private jacuzzi \u{1F6C1} for the perfect unwind. Enjoy high-speed WiFi " +
+    "\u{1F4BB}, Smart TV \u{1F4FA}, pet-friendly comfort \u{1F43E}, and " +
+    "stylish interiors. Just minutes from Candolim Beach \u{1F3D6}️, " +
+    "popular cafés, restaurants, and nightlife \u{1F379}, it’s ideal " +
+    "for couples seeking romance, relaxation, and a touch of luxury in North " +
+    "Goa. ❤️\u{1F334}",
 
   highlights: [
+    {
+      id: "outdoor-entertainment",
+      icon: "outdoor",
+      title: "Outdoor entertainment",
+      subtitle: "The pool and alfresco dining are great for summer trips.",
+    },
+    {
+      id: "staying-cool",
+      icon: "ac",
+      title: "Designed for staying cool",
+      subtitle: "Beat the heat with the A/C and ceiling fan.",
+    },
     {
       id: "self-checkin",
       icon: "door",
       title: "Self check-in",
-      subtitle: "Check yourself in with the lockbox.",
-    },
-    {
-      id: "jacuzzi",
-      icon: "hot-tub",
-      title: "Private jacuzzi",
-      subtitle: "A hot tub in your own walled courtyard, just for your stay.",
-    },
-    {
-      id: "cancellation",
-      icon: "calendar",
-      title: "Free cancellation for 48 hours",
-      subtitle: "Get a full refund if you change your mind shortly after booking.",
+      subtitle: "You can check in with the building staff.",
     },
   ],
 
+  /*
+    The ten the page lists, in order. The dialog behind "Show all 50 amenities"
+    holds the full grouped set — see `capture-amenities.json`. `amenitiesTotal`
+    carries the 50 so the button label is not derived from this array's length.
+  */
   amenities: [
-    { id: "jacuzzi", label: "Private jacuzzi", icon: "hot-tub", available: true },
-    { id: "wifi", label: "Fast wifi", icon: "wifi", available: true },
     { id: "kitchen", label: "Kitchen", icon: "kitchen", available: true },
-    { id: "ac", label: "Air conditioning", icon: "ac", available: true },
+    { id: "wifi", label: "Wifi", icon: "wifi", available: true },
+    { id: "workspace", label: "Dedicated workspace", icon: "desk", available: true },
     { id: "parking", label: "Free parking on premises", icon: "parking", available: true },
-    { id: "tv", label: "TV", icon: "tv", available: true },
-    { id: "washer", label: "Washing machine", icon: "washer", available: true },
-    { id: "courtyard", label: "Private courtyard", icon: "balcony", available: true },
-    // The photo set contains a shared pool (3 photos) and a gym (5) — this is a
-    // serviced-apartment complex, which is why a 1BHK has 43 photos.
-    { id: "pool", label: "Shared pool", icon: "pool", available: true },
-    { id: "gym", label: "Shared gym", icon: "desk", available: true },
+    { id: "pool", label: "Pool", icon: "pool", available: true },
+    { id: "hot-tub", label: "Hot tub", icon: "hot-tub", available: true },
+    { id: "pets", label: "Pets allowed", icon: "pets", available: true },
+    {
+      id: "cameras",
+      label: "Exterior security cameras on property",
+      icon: "camera",
+      available: true,
+    },
+    { id: "co-alarm", label: "Carbon monoxide alarm", icon: "co-alarm", available: true },
+    { id: "smoke-alarm", label: "Smoke alarm", icon: "smoke-alarm", available: true },
   ],
+  amenitiesTotal: 50,
 
   sleepingArrangements: [
-    {
-      id: "bedroom",
-      room: "Bedroom",
-      description: "1 double bed",
-      icon: "bed",
-    },
+    { id: "bedroom", room: "Bedroom", description: "1 double bed", icon: "bed" },
+    { id: "living-room", room: "Living room", description: "1 sofa", icon: "sofa" },
   ],
 
+  /*
+    All six the page shows, verbatim, in DOM order.
+
+    "Show all 19 reviews" is DEAD in the reference — clicking it opens no dialog,
+    changes no URL and does not grow the DOM by a byte (measured 5350 -> 5350).
+    Six is therefore the complete set, and the 19 is a counter, not a promise.
+
+    Amit and Vedant have no avatar image; the reference renders their initial in
+    a tile. Their `authorAvatar` is omitted rather than filled with a stand-in.
+  */
   reviews: [
     {
       id: "r1",
-      authorName: "Aditi",
-      authorAvatar: "/assets/images/avatars/rev1.jpeg",
-      authorTenure: "6 years on Airbnb",
+      authorName: "Amit",
+      authorTenure: "2 months on Airbnb",
       rating: 5,
-      date: "July 2026",
+      date: "1 week ago",
       body:
-        "Genuinely one of the nicest places we've stayed in Goa. The jacuzzi in " +
-        "the courtyard was the highlight — we used it every evening. Spotlessly " +
-        "clean and the check-in instructions were clear.",
+        "Very helpful and responsive team. Safe and peaceful stay. loved " +
+        "everything about the property.",
     },
     {
       id: "r2",
-      authorName: "Rohan",
-      authorAvatar: "/assets/images/avatars/rev2.jpeg",
+      authorName: "Aheesh",
+      authorAvatar: "/assets/images/avatars/rev1.jpeg",
       authorTenure: "3 years on Airbnb",
       rating: 5,
-      date: "June 2026",
+      date: "2 weeks ago",
       body:
-        "Great location — walkable to the beach and plenty of places to eat on " +
-        "the same road. The apartment is quiet at night, which we weren't " +
-        "expecting so close to Candolim.",
+        "We had a wonderful stay. The apartment was clean, comfortable, and " +
+        "exactly as shown in the photos. The host was very responsive and " +
+        "helpful throughout our stay. We would definitely recommend this place " +
+        "and would love to stay here again.",
     },
     {
       id: "r3",
-      authorName: "Meera",
-      authorAvatar: "/assets/images/avatars/rev3.jpeg",
-      authorTenure: "8 years on Airbnb",
+      authorName: "Samiksha",
+      authorAvatar: "/assets/images/avatars/rev2.jpeg",
+      authorTenure: "8 months on Airbnb",
       rating: 5,
       date: "May 2026",
-      body:
-        "The photos are accurate, which isn't always the case. Kitchen had " +
-        "everything we needed and the AC kept up easily. Would book again.",
+      body: "the host nitish was really great help",
     },
     {
       id: "r4",
-      authorName: "Daniel",
-      authorAvatar: "/assets/images/avatars/rev4.jpeg",
-      authorTenure: "2 years on Airbnb",
+      authorName: "Vedant",
+      authorTenure: "4 years on Airbnb",
       rating: 5,
-      date: "April 2026",
+      date: "May 2026",
       body:
-        "Very comfortable for three of us. Communication was quick and the " +
-        "parking made getting around simple.",
+        "We had an amazing stay at this property in Goa! The entire home was " +
+        "spotless and exceptionally well-maintained, making us feel comfortable " +
+        "from the moment we arrived. The cleanliness standards were truly " +
+        "impressive, with every corner of the house looking fresh and pristine." +
+        "\n\nThe highlight of our stay was definitely the jacuzzi. It was clean, " +
+        "well-kept, and the perfect place to relax after a day of exploring Goa. " +
+        "It added a luxurious touch to our vacation and made our experience even " +
+        "more memorable.\n\nThe property was exactly as described, well-equipped, " +
+        "and offered a peaceful atmosphere. We would highly recommend this place " +
+        "to anyone looking for a comfortable, clean, and relaxing stay in Goa. " +
+        "Looking forward to visiting again!",
     },
     {
       id: "r5",
-      authorName: "Sana",
-      authorAvatar: "/assets/images/avatars/rev5.jpeg",
-      authorTenure: "5 years on Airbnb",
-      rating: 4,
-      date: "March 2026",
+      authorName: "Vaibhav S",
+      authorAvatar: "/assets/images/avatars/rev3.jpeg",
+      authorTenure: "3 years on Airbnb",
+      rating: 5,
+      date: "May 2026",
       body:
-        "Lovely apartment and a brilliant courtyard. Only small thing was some " +
-        "construction noise nearby during the day, but it stopped by evening.",
+        "Great great experience living out there , can't expect more , will " +
+        "always look for it in the future and will recommend my friends too.",
+    },
+    {
+      id: "r6",
+      authorName: "Mohd",
+      authorAvatar: "/assets/images/avatars/rev4.jpeg",
+      authorTenure: "5 years on Airbnb",
+      rating: 5,
+      date: "May 2026",
+      body: "Great place. Exactly as described in the listing.",
     },
   ],
 
   ratingBreakdown: {
     cleanliness: 5.0,
-    accuracy: 4.9,
+    accuracy: 5.0,
     checkIn: 5.0,
     communication: 5.0,
     location: 4.8,
-    value: 4.9,
+    value: 4.8,
   },
 
+  /*
+    The host card renders "Host", not "Superhost" — the reference shows no
+    Superhost badge, so `isSuperhost` is false rather than merely unrendered.
+  */
   host: {
-    name: "Mirashya Stays",
+    name: "Mirashya Homes",
     avatar: "/assets/images/avatars/host.jpeg",
-    isSuperhost: true,
+    isSuperhost: false,
     hostingDuration: "2 years hosting",
-    reviewCount: 218,
-    rating: 4.92,
+    reviewCount: 1463,
+    rating: 4.68,
     responseRate: "100%",
     responseTime: "within an hour",
+    facts: ["Born in the 80s", "Where I went to school: NICMAR GOA"],
   },
 
+  /*
+    Eight co-hosts. Six have photos and two (Shruti, Amisha) render as letter
+    tiles. The reference reuses three of its review avatars here — that is its
+    own asset reuse, transcribed, not ours.
+  */
   coHosts: [
-    { id: "co1", name: "Nikhil", avatar: "/assets/images/avatars/co1.jpg" },
-    { id: "co2", name: "Priya", avatar: "/assets/images/avatars/co2.jpg" },
-    { id: "co3", name: "Vikram", avatar: "/assets/images/avatars/co3.jpg" },
+    { id: "co1", name: "Sharath", avatar: "/assets/images/avatars/co1.jpg" },
+    { id: "co2", name: "Aman Dev Pahwa", avatar: "/assets/images/avatars/co2.jpg" },
+    { id: "co3", name: "Maria Karen Priyanka", avatar: "/assets/images/avatars/co3.jpg" },
+    { id: "co4", name: "Simran", avatar: "/assets/images/avatars/rev5.jpeg" },
+    { id: "co5", name: "Pallavi", avatar: "/assets/images/avatars/rev1.jpeg" },
+    { id: "co6", name: "Sanyukta", avatar: "/assets/images/avatars/rev2.jpeg" },
+    { id: "co7", name: "Shruti" },
+    { id: "co8", name: "Amisha" },
   ],
 
-  reviewTopics: reviewTopics.map(([id, label, quote]) => ({
+  reviewTopics: reviewTopics.map(([id, label, count]) => ({
     id,
     label,
-    quote,
+    count,
     icon: `/assets/images/chips/${id}.png`,
   })),
 
+  /*
+    Eight cards behind a "1 / 2" pager. The last two reuse s2 and s4 — again the
+    reference's own reuse: it ships six distinct images across eight cards.
+  */
   similarListings: [
-    { id: "s1", image: "/assets/images/similar/s1.jpeg", title: "Sea-view studio near Sinquerim", propertyType: "Entire studio", price: 21400, nights: 5, rating: 4.88 },
-    { id: "s2", image: "/assets/images/similar/s2.jpeg", title: "Garden apartment in Saligao", propertyType: "Entire apartment", price: 18900, nights: 5, rating: 4.79 },
-    { id: "s3", image: "/assets/images/similar/s3.jpeg", title: "Poolside 1BHK in Calangute", propertyType: "Entire serviced apartment", price: 24750, nights: 5, rating: 4.91 },
-    { id: "s4", image: "/assets/images/similar/s4.jpeg", title: "Quiet villa room in Nerul", propertyType: "Private room in villa", price: 15200, nights: 5, rating: 4.83 },
-    { id: "s5", image: "/assets/images/similar/s5.jpeg", title: "Balcony suite off Candolim beach road", propertyType: "Entire apartment", price: 26300, nights: 5, rating: 4.95 },
-    { id: "s6", image: "/assets/images/similar/s6.jpeg", title: "Riverside loft in Reis Magos", propertyType: "Entire loft", price: 29800, nights: 5, rating: 4.86 },
+    { id: "s1", image: "/assets/images/similar/s1.jpeg", title: "Beautiful Studio with a view to die for", price: 23600, rating: 4.91 },
+    { id: "s2", image: "/assets/images/similar/s2.jpeg", title: "NAQAB - 1bhk with private pool", price: 42218, rating: 4.95 },
+    { id: "s3", image: "/assets/images/similar/s3.jpeg", title: "Greentique Luxury Flat with plunge pool, Calangute", price: 44506, rating: 4.94 },
+    { id: "s4", image: "/assets/images/similar/s4.jpeg", title: "The Tropical Studio | 5 mins to Beach", price: 22824, rating: 4.96 },
+    { id: "s5", image: "/assets/images/similar/s5.jpeg", title: "Luxury Casa Bella 1BHK with plunge pool, Calangute", price: 39942, rating: 4.95 },
+    { id: "s6", image: "/assets/images/similar/s6.jpeg", title: "Kanso by Earthen Window | Jacuzzi | Terrace | Pool", price: 45648, rating: 5.0 },
+    { id: "s7", image: "/assets/images/similar/s2.jpeg", title: "Luxury Apt | Private Pool | 6 Mins from Beach", price: 48786, rating: 4.93 },
+    { id: "s8", image: "/assets/images/similar/s4.jpeg", title: "Serendipity Cottage - Calm Stay in Calangute-Baga.", price: 22824, rating: 4.92 },
   ],
 
+  /* Cancellation first, then house rules, then safety — the reference's order. */
   thingsToKnow: [
+    {
+      id: "cancellation",
+      heading: "Cancellation policy",
+      items: [
+        "Free cancellation before 17 October. Cancel before check-in on 18 October for a partial refund.",
+        "Review this host’s full policy for details.",
+      ],
+    },
     {
       id: "house-rules",
       heading: "House rules",
-      items: ["Check-in after 2:00 pm", "Checkout before 11:00 am", "3 guests maximum"],
+      /*
+        The space before "pm"/"am" is U+2009 THIN SPACE, not U+0020. It is in the
+        source and it is visibly narrower; retyping these two lines by eye loses
+        it silently, which is why they are written with the escape.
+      */
+      items: [
+        "Check-in after 2:00\u2009pm",
+        "Checkout before 11:00\u2009am",
+        "3 guests maximum",
+      ],
     },
     {
       id: "safety",
       heading: "Safety & property",
       items: [
         "Carbon monoxide alarm not reported",
-        "Smoke alarm installed",
-        "Jacuzzi with no gate or lock",
-      ],
-    },
-    {
-      id: "cancellation",
-      heading: "Cancellation policy",
-      items: [
-        "Free cancellation for 48 hours.",
-        "Review the host's full cancellation policy which applies even if you cancel for illness or disruptions caused by COVID-19.",
+        "Smoke alarm not reported",
+        "Exterior security cameras on property",
       ],
     },
   ],
 
   locationInfo: {
     heading: "Candolim, Goa, India",
+    disclaimer: "Exact location will be provided after booking.",
+    highlightsHeading: "Neighbourhood highlights",
     blurb:
-      "Candolim sits between Sinquerim and Calangute on North Goa's coast — a " +
-      "quieter stretch of beach with cafes, bakeries and rentals along the main " +
-      "road, and Fort Aguada a short drive south.",
+      "Located in the heart of Candolim, Amor de Goa offers a peaceful stay " +
+      "with easy access to beaches, cafés, and popular attractions.",
   },
 };
 

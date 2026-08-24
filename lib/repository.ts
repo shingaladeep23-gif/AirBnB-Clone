@@ -91,7 +91,12 @@ class PrismaListingRepository implements ListingRepository {
           include: { items: { orderBy: { sortOrder: "asc" } } },
         },
         similarListings: { orderBy: { sortOrder: "asc" } },
-        host: { include: { coHosts: { orderBy: { sortOrder: "asc" } } } },
+        host: {
+          include: {
+            coHosts: { orderBy: { sortOrder: "asc" } },
+            facts: { orderBy: { sortOrder: "asc" } },
+          },
+        },
         promo: true,
         locationInfo: true,
       },
@@ -162,7 +167,7 @@ class PrismaListingRepository implements ListingRepository {
       reviews: row.reviews.map((review) => ({
         id: review.id,
         authorName: review.authorName,
-        authorAvatar: review.authorAvatar,
+        ...(review.authorAvatar === null ? {} : { authorAvatar: review.authorAvatar }),
         body: review.body,
         rating: review.rating,
         date: review.date,
@@ -178,6 +183,7 @@ class PrismaListingRepository implements ListingRepository {
         rating: row.host.rating,
         ...(row.host.responseRate === null ? {} : { responseRate: row.host.responseRate }),
         ...(row.host.responseTime === null ? {} : { responseTime: row.host.responseTime }),
+        facts: row.host.facts.map((fact) => fact.text),
       },
       sleepingArrangements: row.sleepingArrangements.map((arrangement) => ({
         id: arrangement.id,
@@ -198,6 +204,8 @@ class PrismaListingRepository implements ListingRepository {
         subtitle: highlight.subtitle,
       })),
       guestFavouriteCopy: row.guestFavouriteCopy,
+      guestFavouriteReviewsCopy: row.guestFavouriteReviewsCopy,
+      amenitiesTotal: row.amenitiesTotal,
       promo: {
         headline: row.promo.headline,
         terms: row.promo.terms,
@@ -207,21 +215,19 @@ class PrismaListingRepository implements ListingRepository {
       coHosts: row.host.coHosts.map((coHost) => ({
         id: coHost.id,
         name: coHost.name,
-        avatar: coHost.avatar,
+        ...(coHost.avatar === null ? {} : { avatar: coHost.avatar }),
       })),
       reviewTopics: row.reviewTopics.map((topic) => ({
         id: topic.id,
         label: topic.label,
         icon: topic.icon,
-        quote: topic.quote,
+        count: topic.count,
       })),
       similarListings: row.similarListings.map((similar) => ({
         id: similar.id,
         image: similar.image,
         title: similar.title,
-        propertyType: similar.propertyType,
         price: similar.price,
-        nights: similar.nights,
         rating: similar.rating,
       })),
       thingsToKnow: row.thingsToKnow.map((group) => ({
@@ -231,6 +237,8 @@ class PrismaListingRepository implements ListingRepository {
       })),
       locationInfo: {
         heading: row.locationInfo.heading,
+        disclaimer: row.locationInfo.disclaimer,
+        highlightsHeading: row.locationInfo.highlightsHeading,
         blurb: row.locationInfo.blurb,
       },
     };

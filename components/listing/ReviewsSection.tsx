@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { Listing } from "@/lib/types";
 import { StarIcon } from "@/components/ui/icons";
+import { Avatar } from "@/components/ui/Avatar";
 import { LineIcon } from "@/components/ui/LineIcon";
 
 /**
@@ -35,7 +36,7 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
               height={150}
               className="h-laurel-h w-auto"
             />
-            <span className="text-hero font-semibold text-fg">
+            <span className="text-hero font-medium text-fg">
               {listing.rating}
             </span>
             <Image
@@ -46,10 +47,9 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
               className="h-laurel-h w-auto"
             />
           </div>
-          <h2 className="pt-4 text-2xl font-semibold text-fg">Guest favourite</h2>
+          <h2 className="pt-4 text-2xl font-medium text-fg">Guest favourite</h2>
           <p className="max-w-[420px] pt-2 text-center text-base text-subtle">
-            One of the most loved homes on Airbnb based on ratings, reviews and
-            reliability
+            {listing.guestFavouriteReviewsCopy}
           </p>
         </div>
       )}
@@ -79,7 +79,7 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
             className="flex flex-1 flex-col justify-between border-l border-border-subtle px-6"
           >
             <p className="text-sm text-fg">{category.label}</p>
-            <p className="pt-2 text-lg font-semibold text-fg">
+            <p className="pt-2 text-lg font-medium text-fg">
               {listing.ratingBreakdown[category.key].toFixed(1)}
             </p>
             <span className="pt-2 text-fg">
@@ -103,7 +103,7 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
             {listing.reviewTopics.map((topic) => (
               <li
                 key={topic.id}
-                className="flex w-topic-chip-w shrink-0 flex-col rounded-card border border-border-subtle p-4"
+                className="flex shrink-0 flex-col rounded-lg border border-border-subtle p-4"
               >
                 <Image
                   src={topic.icon}
@@ -112,31 +112,31 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
                   height={56}
                   className="size-14"
                 />
-                <p className="pt-3 text-base font-semibold text-fg">
+                <p className="pt-3 text-base font-medium text-fg">
                   {topic.label}
                 </p>
-                <p className="pt-1 text-sm text-subtle">{topic.quote}</p>
+                <p className="pt-1 text-sm text-subtle">{topic.count}</p>
               </li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* 10d — Review cards: exactly 5 (rev1-5.jpeg), two-across so 2+2+1. */}
+      {/* 10d — Review cards: exactly 6, two-across so three full rows. Two of the
+          six have no avatar photo and render as letter tiles. */}
       {listing.reviews.length > 0 && (
         <ul className="grid grid-cols-2 gap-x-16 gap-y-10 pt-4">
           {listing.reviews.map((review) => (
             <li key={review.id}>
               <div className="flex items-center gap-3">
-                <Image
+                <Avatar
                   src={review.authorAvatar}
-                  alt=""
-                  width={48}
-                  height={48}
-                  className="size-12 rounded-pill object-cover"
+                  name={review.authorName}
+                  size={48}
+                  className="size-12"
                 />
                 <div>
-                  <p className="text-base font-semibold text-fg">
+                  <p className="text-base font-medium text-fg">
                     {review.authorName}
                   </p>
                   <p className="text-sm text-subtle">{review.authorTenure}</p>
@@ -164,7 +164,7 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
       {/* 10e */}
       <button
         type="button"
-        className="mt-10 h-12 rounded-md border border-border-strong px-5 text-base font-semibold text-fg transition-colors duration-fast hover:bg-surface-hover"
+        className="mt-10 h-button-lg-h rounded-card border border-border-strong px-5 text-base font-medium text-fg transition-colors duration-fast hover:bg-surface-hover"
       >
         Show all {listing.reviewCount} reviews
       </button>

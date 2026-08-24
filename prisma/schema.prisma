@@ -26,6 +26,11 @@ model Listing {
   propertyType     String
   description      String
   guestFavouriteCopy String
+  /// The reviews section repeats the badge with different wording, so this is a
+  /// second real string rather than a duplicate of the one above.
+  guestFavouriteReviewsCopy String
+  /// What "Show all N amenities" offers. The page lists 10; the dialog holds 50.
+  amenitiesTotal   Int
   guests           Int
   bedrooms         Int
   beds             Int
@@ -90,7 +95,8 @@ model Review {
   id           String  @id
   listingId    String
   authorName   String
-  authorAvatar String
+  /// Null where the reviewer has no photo and the page renders a letter tile.
+  authorAvatar String?
   body         String
   rating       Int
   /// Rendered exactly as the page shows it ("August 2025"); `sortOrder` carries
@@ -109,7 +115,8 @@ model ReviewTopic {
   listingId String
   label     String
   icon      String
-  quote     String
+  /// How many reviews mentioned the topic. The chip renders this number.
+  count     Int
   sortOrder Int
 
   listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
@@ -177,9 +184,7 @@ model SimilarListing {
   listingId    String
   image        String
   title        String
-  propertyType String
   price        Int
-  nights       Int
   rating       Float
   sortOrder    Int
 
@@ -198,15 +203,32 @@ model Host {
   responseRate    String?
   responseTime    String?
 
+  facts           HostFact[]
+
   coHosts         CoHost[]
   listing         Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+/// A line the host wrote about themselves ("Born in the 80s"). A table rather
+/// than named columns because the reference renders whatever the host filled in,
+/// in order — the same shape as ThingsToKnowItem.
+model HostFact {
+  id        String @id
+  hostId    String
+  text      String
+  sortOrder Int
+
+  host      Host   @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  @@index([hostId, sortOrder])
 }
 
 model CoHost {
   id        String @id
   hostId    String
   name      String
-  avatar    String
+  /// Null where the co-host has no photo and the page renders a letter tile.
+  avatar    String?
   sortOrder Int
 
   host      Host   @relation(fields: [hostId], references: [id], onDelete: Cascade)
@@ -227,6 +249,8 @@ model LocationInfo {
   id        String @id
   listingId String @unique
   heading   String
+  disclaimer String
+  highlightsHeading String
   blurb     String
 
   listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)

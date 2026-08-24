@@ -5,14 +5,13 @@ import { listing } from "../lib/listing";
 import { addDaysIso, parseIsoDate, todayIso } from "../lib/dates";
 
 /**
- * Seeds the database from `lib/listing.ts` — the module that drove Phase 1.
+ * Seeds the database from `lib/listing.ts`.
  *
- * SEEDING FROM THE EXISTING CONSTANT IS THE POINT. Phase 2 must not change a
- * single rendered pixel, and the only way to be sure of that is for the database
- * to contain exactly what the page already rendered, rather than a retyped
- * approximation of it. The provenance rules in `lib/listing.ts` (which strings
- * are CAPTURED and which are AUTHORED) carry over unchanged; this script moves
- * the data, it does not invent any.
+ * SEEDING FROM THE MODULE IS THE POINT. The static render and the API must serve
+ * the same strings, and the only way to be sure of that is for the database to
+ * contain exactly what the module holds, rather than a retyped approximation of
+ * it. Since P3-A every string in that module is transcribed from the live
+ * reference, so this script moves captured content — it invents none.
  *
  * Re-runnable: it clears the listing first, and every relation cascades.
  */
@@ -81,6 +80,8 @@ async function main() {
       propertyType: listing.propertyType,
       description: listing.description,
       guestFavouriteCopy: listing.guestFavouriteCopy,
+      guestFavouriteReviewsCopy: listing.guestFavouriteReviewsCopy,
+      amenitiesTotal: listing.amenitiesTotal,
       guests: listing.capacity.guests,
       bedrooms: listing.capacity.bedrooms,
       beds: listing.capacity.beds,
@@ -119,7 +120,8 @@ async function main() {
         create: listing.reviews.map((review, index) => ({
           id: review.id,
           authorName: review.authorName,
-          authorAvatar: review.authorAvatar,
+          // null, not a stand-in image: two reviewers genuinely have no photo.
+          authorAvatar: review.authorAvatar ?? null,
           body: review.body,
           rating: review.rating,
           date: review.date,
@@ -133,7 +135,7 @@ async function main() {
           id: topic.id,
           label: topic.label,
           icon: topic.icon,
-          quote: topic.quote,
+          count: topic.count,
           sortOrder: index,
         })),
       },
@@ -188,9 +190,7 @@ async function main() {
           id: similar.id,
           image: similar.image,
           title: similar.title,
-          propertyType: similar.propertyType,
           price: similar.price,
-          nights: similar.nights,
           rating: similar.rating,
           sortOrder: index,
         })),
@@ -207,11 +207,18 @@ async function main() {
           rating: listing.host.rating,
           responseRate: listing.host.responseRate ?? null,
           responseTime: listing.host.responseTime ?? null,
+          facts: {
+            create: listing.host.facts.map((text, index) => ({
+              id: `host-fact-${index}`,
+              text,
+              sortOrder: index,
+            })),
+          },
           coHosts: {
             create: listing.coHosts.map((coHost, index) => ({
               id: coHost.id,
               name: coHost.name,
-              avatar: coHost.avatar,
+              avatar: coHost.avatar ?? null,
               sortOrder: index,
             })),
           },
@@ -232,6 +239,8 @@ async function main() {
         create: {
           id: "location-candolim",
           heading: listing.locationInfo.heading,
+          disclaimer: listing.locationInfo.disclaimer,
+          highlightsHeading: listing.locationInfo.highlightsHeading,
           blurb: listing.locationInfo.blurb,
         },
       },

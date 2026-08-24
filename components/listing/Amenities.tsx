@@ -11,10 +11,17 @@ import { LineIcon } from "@/components/ui/LineIcon";
  * paired with visually-hidden text rather than relying on line-through alone —
  * a screen reader gets no signal from a CSS decoration.
  */
-export function Amenities({ amenities }: { amenities: Amenity[] }) {
+export function Amenities({
+  amenities,
+  total,
+}: {
+  amenities: Amenity[];
+  /** What the button offers. The page lists 10; the full set is 50. */
+  total: number;
+}) {
   return (
     <section id="amenities" className="scroll-mt-nav-offset py-8">
-      <h2 className="text-xl font-semibold text-fg">What this place offers</h2>
+      <h2 className="text-xl font-medium text-fg">What this place offers</h2>
 
       {amenities.length > 0 && (
         <>
@@ -44,9 +51,9 @@ export function Amenities({ amenities }: { amenities: Amenity[] }) {
 
           <button
             type="button"
-            className="mt-8 h-12 rounded-md border border-border-strong px-5 text-base font-semibold text-fg transition-colors duration-fast hover:bg-surface-hover"
+            className="mt-8 h-button-lg-h rounded-card border border-border-strong px-5 text-base font-medium text-fg transition-colors duration-fast hover:bg-surface-hover"
           >
-            Show all {amenities.length} amenities
+            Show all {total} amenities
           </button>
         </>
       )}

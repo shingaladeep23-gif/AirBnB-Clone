@@ -27,6 +27,12 @@ const PATHS: Record<string, string> = {
   bed: "M3 18v-7h18v7M3 18v2M21 18v2M6 11V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3",
   door: "M6 3h12v18H6zM14 12h.01",
   calendar: "M3 6h18v15H3zM3 10h18M8 3v4M16 3v4",
+  sofa: "M4 11V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3M2 12a2 2 0 0 1 4 0v4h12v-4a2 2 0 0 1 4 0v6H2zM6 21v-3M18 21v-3",
+  pets: "M6.5 8a1.8 2.3 0 1 0 0-.01M17.5 8a1.8 2.3 0 1 0 0-.01M3.5 13a1.6 2 0 1 0 0-.01M20.5 13a1.6 2 0 1 0 0-.01M12 12c2.5 0 4.5 2.6 4.5 5a2.5 2.5 0 0 1-3.5 2.3 3.5 3.5 0 0 0-2 0A2.5 2.5 0 0 1 7.5 17c0-2.4 2-5 4.5-5z",
+  camera: "M3 8h11v9H3zM14 11l6-3v9l-6-3M6 5h5",
+  "co-alarm": "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v4M12 15.5h.01",
+  "smoke-alarm": "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z",
+  outdoor: "M12 2v4M12 6a6 6 0 0 1 6 6H6a6 6 0 0 1 6-6zM4 12v9M20 12v9M4 16h16M4 20h16",
 
   // Rating-breakdown categories
   cleanliness: "M4 8h16l-1.5 12h-13zM9 8V5a3 3 0 0 1 6 0v3M10 12v4M14 12v4",

@@ -1,15 +1,14 @@
 import Image from "next/image";
 import type { CoHost, Host } from "@/lib/types";
+import { Avatar } from "@/components/ui/Avatar";
 
 /**
  * "Meet your host" (BELOW-FOLD-SPEC §12). Two columns: a raised host card on the
  * left, host details + co-hosts on the right.
  *
- * The three co-host avatars are why this section is evidence-backed — nothing else
- * on an Airbnb page consumes exactly three small avatars.
- *
- * IMPORTANT: co1 (120x160) and co3 (120x197) are NOT square. They must be
- * object-cover inside the circle or heads crop badly.
+ * Eight co-hosts, of which two have no photo and render as letter tiles — see
+ * `Avatar`. Several of the photo sources are portrait, not square, which is why
+ * that component insists on object-cover.
  */
 export function MeetYourHost({
   host,
@@ -22,12 +21,12 @@ export function MeetYourHost({
 
   return (
     <section className="border-t border-border-subtle py-12">
-      <h2 className="text-xl font-semibold text-fg">Meet your host</h2>
+      <h2 className="text-xl font-medium text-fg">Meet your host</h2>
 
       <div className="flex gap-16 pt-8">
         {/* Host card */}
         <div className="w-card-w shrink-0">
-          <div className="flex flex-col items-center rounded-2xl px-8 py-10 shadow-card">
+          <div className="flex flex-col items-center rounded-card px-8 py-10 shadow-card">
             <Image
               src={host.avatar}
               alt=""
@@ -35,22 +34,34 @@ export function MeetYourHost({
               height={104}
               className="size-26 rounded-pill object-cover"
             />
-            <p className="pt-4 text-3xl font-semibold text-fg">{host.name}</p>
-            {host.isSuperhost && (
-              <p className="pt-1 text-sm font-medium text-fg">Superhost</p>
-            )}
+            <p className="pt-4 text-2xl font-medium text-fg">{host.name}</p>
+            <p className="pt-1 text-sm font-medium text-fg">
+              {host.isSuperhost ? "Superhost" : "Host"}
+            </p>
 
             <dl className="flex w-full items-stretch pt-8">
-              <Stat label="Reviews" value={String(host.reviewCount)} />
+              {/* 1463 renders as "1,463" — grouped, the way the reference shows it. */}
+              <Stat label="Reviews" value={host.reviewCount.toLocaleString("en-IN")} />
               <Stat label="Rating" value={`${host.rating}★`} bordered />
               <Stat label="Years hosting" value={host.hostingDuration.split(" ")[0] ?? ""} />
             </dl>
           </div>
+
+          {/* What the host wrote about themselves, in the order they wrote it. */}
+          {host.facts.length > 0 && (
+            <ul className="pt-6">
+              {host.facts.map((fact) => (
+                <li key={fact} className="pb-2 text-base text-fg">
+                  {fact}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {/* Host details + co-hosts */}
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-fg">Host details</h3>
+          <h3 className="text-lg font-medium text-fg">Host details</h3>
           <p className="pt-3 text-base text-fg">
             Response rate: {host.responseRate}
           </p>
@@ -60,17 +71,16 @@ export function MeetYourHost({
 
           {coHosts.length > 0 && (
             <div className="pt-8">
-              <h3 className="text-lg font-semibold text-fg">Co-hosts</h3>
+              <h3 className="text-lg font-medium text-fg">Co-hosts</h3>
               <ul className="flex flex-wrap gap-6 pt-4">
                 {coHosts.map((coHost) => (
                   <li key={coHost.id} className="flex items-center gap-2">
-                    <Image
+                    <Avatar
                       src={coHost.avatar}
-                      alt=""
-                      width={40}
-                      height={40}
-                      // object-cover is load-bearing: co1/co3 are portrait, not square.
-                      className="size-10 rounded-pill object-cover"
+                      name={coHost.name}
+                      size={40}
+                      className="size-10"
+                      letterClassName="text-sm"
                     />
                     <span className="text-sm text-fg">{coHost.name}</span>
                   </li>
@@ -81,7 +91,7 @@ export function MeetYourHost({
 
           <button
             type="button"
-            className="mt-8 h-12 rounded-md bg-fg px-6 text-base font-semibold text-fg-inverse transition-opacity duration-fast hover:opacity-90"
+            className="mt-8 h-12 rounded-md bg-fg px-6 text-base font-medium text-fg-inverse transition-opacity duration-fast hover:opacity-90"
           >
             Message host
           </button>
@@ -107,7 +117,7 @@ function Stat({
       }`}
     >
       <dt className="text-xs text-subtle">{label}</dt>
-      <dd className="pt-0.5 text-base font-semibold text-fg">{value}</dd>
+      <dd className="pt-0.5 text-base font-medium text-fg">{value}</dd>
     </div>
   );
 }

@@ -24,7 +24,7 @@ export function ListingDetails({ listing }: { listing: Listing }) {
     <div className="flex flex-col divide-y divide-border-subtle">
       {/* §3 — Overview */}
       <section className="pb-6 pt-8">
-        <h2 className="text-xl font-semibold text-fg">{listing.propertyType}</h2>
+        <h2 className="text-xl font-medium text-fg">{listing.propertyType}</h2>
         <p className="pt-1 text-base text-fg">
           {formatCapacity(listing.capacity)}
         </p>
@@ -46,7 +46,7 @@ export function ListingDetails({ listing }: { listing: Listing }) {
       <WhereYouSleep arrangements={listing.sleepingArrangements} />
 
       {/* §8 — id="amenities" */}
-      <Amenities amenities={listing.amenities} />
+      <Amenities amenities={listing.amenities} total={listing.amenitiesTotal} />
 
       {/* §9 — swing block; see the component's note */}
       <Calendar listing={listing} />

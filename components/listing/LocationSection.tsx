@@ -17,7 +17,7 @@ import { ChevronIcon } from "@/components/ui/icons";
 export function LocationSection({ location }: { location: LocationInfo }) {
   return (
     <section id="location" className="scroll-mt-nav-offset border-t border-border-subtle py-12">
-      <h2 className="text-xl font-semibold text-fg">Where you&rsquo;ll be</h2>
+      <h2 className="text-xl font-medium text-fg">Where you&rsquo;ll be</h2>
       <p className="pt-2 text-base text-fg">{location.heading}</p>
 
       <div
@@ -28,7 +28,7 @@ export function LocationSection({ location }: { location: LocationInfo }) {
         <div className="absolute inset-0 opacity-60">
           <div className="absolute left-0 top-1/3 h-24 w-full -rotate-3 bg-border-subtle" />
           <div className="absolute left-1/4 top-0 h-full w-16 rotate-6 bg-border-subtle" />
-          <div className="absolute bottom-0 right-0 h-2/5 w-2/5 rounded-tl-2xl bg-border-subtle" />
+          <div className="absolute bottom-0 right-0 h-2/5 w-2/5 rounded-tl-card bg-border-subtle" />
         </div>
 
         {/* Centre pin */}
@@ -37,11 +37,16 @@ export function LocationSection({ location }: { location: LocationInfo }) {
         </div>
       </div>
 
-      <p className="max-w-[680px] pt-6 text-base text-fg">{location.blurb}</p>
+      <p className="pt-6 text-base text-fg">{location.disclaimer}</p>
+
+      <h3 className="pt-6 text-lg font-medium text-fg">
+        {location.highlightsHeading}
+      </h3>
+      <p className="max-w-[680px] pt-3 text-base text-fg">{location.blurb}</p>
 
       <button
         type="button"
-        className="mt-3 flex items-center gap-1 text-base font-semibold text-fg underline"
+        className="mt-3 flex items-center gap-1 text-base font-medium text-fg underline"
       >
         Show more
         <span className="rotate-180">

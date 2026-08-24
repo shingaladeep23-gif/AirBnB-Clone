@@ -39,7 +39,12 @@ export interface Amenity {
 export interface Review {
   id: string;
   authorName: string;
-  authorAvatar: string;
+  /**
+   * Omitted when the reference renders a letter tile instead of a photo — two of
+   * the six reviewers have no avatar image, and substituting one would be
+   * inventing content.
+   */
+  authorAvatar?: string;
   /** Free text as displayed; may be clamped by the UI. */
   body: string;
   /** Star rating, 1–5. */
@@ -71,6 +76,12 @@ export interface Host {
   rating: number;
   responseRate?: string;
   responseTime?: string;
+  /**
+   * Free-form lines the host wrote about themselves ("Born in the 80s"), shown
+   * under the host card. A list rather than named fields: the reference renders
+   * whatever the host filled in, in order.
+   */
+  facts: string[];
 }
 
 /** Sleeping-arrangement card ("Bedroom — 1 double bed"). */
@@ -122,15 +133,25 @@ export interface Listing {
   /** "About this place" body copy. */
   description: string;
   highlights: ListingHighlight[];
-  /** Supporting line under the "Guest favourite" laurel card. */
+  /** Supporting line under the "Guest favourite" laurel card, above the fold. */
   guestFavouriteCopy: string;
+  /**
+   * The reviews section repeats the badge with DIFFERENT wording. Two fields,
+   * not one, because the reference genuinely shows two different sentences.
+   */
+  guestFavouriteReviewsCopy: string;
+  /**
+   * How many amenities the "Show all N amenities" button offers. Not
+   * `amenities.length`: the page lists 10 and the dialog holds 50.
+   */
+  amenitiesTotal: number;
   /** The "Get 10% off" card above the booking card. */
   promo: Promo;
-  /** Exactly 3, from avatars/co1-3.jpg. */
+  /** Exactly 8; six carry photos and two render as letter tiles. */
   coHosts: CoHost[];
   /** Exactly 10, from chips/*.png. */
   reviewTopics: ReviewTopic[];
-  /** Exactly 6, from similar/s1-6.jpeg. */
+  /** Exactly 8 cards — the reference itself reuses s2 and s4 for the last two. */
   similarListings: SimilarListing[];
   /** Three columns: house rules, safety, cancellation. */
   thingsToKnow: ThingsToKnowGroup[];
@@ -146,33 +167,34 @@ export interface Promo {
   icon: string;
 }
 
-/** A co-host shown inside "Meet your host". Exactly 3 exist (co1-3.jpg). */
+/** A co-host shown inside "Meet your host". Avatar omitted = letter tile. */
 export interface CoHost {
   id: string;
   name: string;
-  avatar: string;
+  avatar?: string;
 }
 
 /**
- * A review-topic chip (BELOW-FOLD-SPEC §10c). Exactly 10 exist; the illustration
- * and label are evidence-backed (decoded from the chip filenames), the quote is
- * authored copy.
+ * A review-topic chip (BELOW-FOLD-SPEC §10c). Exactly 10 exist. The chip shows
+ * how many reviews mentioned the topic — NOT a testimonial. We used to render an
+ * authored quote here; the reference renders this number.
  */
 export interface ReviewTopic {
   id: string;
   label: string;
   icon: string;
-  quote: string;
+  count: number;
 }
 
-/** A card in the bottom "Similar listings" rail. Exactly 6 assets exist. */
+/**
+ * A card in the "More stays nearby" rail. The reference shows the price with no
+ * per-night or per-stay qualifier at all, so there is no `nights` here to render.
+ */
 export interface SimilarListing {
   id: string;
   image: string;
   title: string;
-  propertyType: string;
   price: number;
-  nights: number;
   rating: number;
 }
 
@@ -185,7 +207,13 @@ export interface ThingsToKnowGroup {
 
 /** "Where you'll be" — the location block. */
 export interface LocationInfo {
+  /** The place line under the section heading: "Candolim, Goa, India". */
   heading: string;
+  /** "Exact location will be provided after booking." */
+  disclaimer: string;
+  /** Sub-heading above the blurb: "Neighbourhood highlights". */
+  highlightsHeading: string;
+  /** The neighbourhood paragraph itself. */
   blurb: string;
 }
 
