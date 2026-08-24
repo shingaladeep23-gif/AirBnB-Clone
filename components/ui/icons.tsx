@@ -151,6 +151,27 @@ export function ChevronIcon({ size = 16, className, strokeWidth = 3 }: IconProps
   );
 }
 
+/**
+ * Close — the X.
+ *
+ * The lightbox capture records the top-right control only by its `aria-label`
+ * ("Close") and its box (40x40 at 1846,16, transparent, no border); it does not
+ * record the glyph. An X is the inference, and it is a safe one — every dismissal
+ * affordance in the reference's own chrome is either a chevron (go back a level)
+ * or an X (close outright), and this control closes outright.
+ */
+export function CloseIcon({ size = 16, className, strokeWidth = 3 }: IconProps) {
+  return (
+    <svg {...svgProps(size, className)} fill="none" stroke="currentColor">
+      <path
+        d="M6 6l20 20M26 6L6 26"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 /** Plus — the guest stepper's increment. */
 export function PlusIcon({ size = 16, className, strokeWidth = 2 }: IconProps) {
   return (

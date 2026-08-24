@@ -5,6 +5,8 @@
 
 # next.js
 /.next/
+# Per-worker build outputs (NEXT_DIST_DIR) — see next.config.ts
+/.next-*/
 /out/
 next-env.d.ts
 

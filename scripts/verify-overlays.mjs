@@ -48,8 +48,8 @@ check("focus trapped inside tour after 60 Tabs", await page.evaluate(() => {
 // --- Escalate to Lightbox from a MIDDLE photo (index 7), not the first
 await page.click('[role="dialog"] button[aria-label*="photo 8 of 43"]');
 await page.waitForTimeout(600);
-const counter = await page.locator('[aria-label="Photo viewer"] [aria-live="polite"]').textContent();
-check("lightbox opens at the CLICKED index (8), not 0", counter?.trim().startsWith("8 /"), `counter=${counter?.trim()}`);
+const counter = await page.locator('[aria-label="Photo viewer"] [data-testid="viewer-counter"]').textContent();
+check("lightbox opens at the CLICKED index (8), not 0", /\b8 of \d+\b/.test(counter ?? ""), `counter=${counter?.trim()}`);
 
 // --- STACKING: nothing beneath the lightbox may be visible or AT-reachable
 check("lightbox backdrop is fully opaque", await page.evaluate(() => {
@@ -60,14 +60,54 @@ check("lightbox backdrop is fully opaque", await page.evaluate(() => {
   return d ? getComputedStyle(d).backgroundColor : "none";
 }));
 
-// Count Share/Save controls that are NOT inside an inert subtree. Only the
-// lightbox's own pair should be reachable — 6 visible was the reported defect.
+// Count Share/Save controls that are NOT inside an inert subtree.
+//
+// EXPECTED IS ZERO, AND THAT IS A CORRECTION. This asserted 2 for weeks, on the
+// premise that the viewer has its own Share/Save pair the way the tour beneath it
+// does. It does not: the reference viewer's control list has exactly four entries
+// — Show all photos, Close, Previous, Next — and neither Share nor Save is among
+// them. So with the lightbox on top, everything below is inert and nothing named
+// Share or Save should be reachable at all.
 const reachableShareSave = await page.evaluate(() =>
   [...document.querySelectorAll("button")]
     .filter((b) => /^(Share|Save)$/.test((b.textContent || "").trim()))
     .filter((b) => !b.closest("[inert]")).length);
-check("only the lightbox's Share/Save are AT-reachable", reachableShareSave === 2,
-  `reachable=${reachableShareSave} (expected 2)`);
+check("no Share/Save is AT-reachable under the lightbox", reachableShareSave === 0,
+  `reachable=${reachableShareSave} (expected 0)`);
+
+/*
+  --- A34: the viewer's two top controls, and WHICH CORNER each sits in.
+
+  Measured: "Show all photos" at x16,y16 and "Close" at x1846,y16 — the top-left
+  one goes BACK to the tour, the top-right one closes outright. We shipped the
+  mirror image of this (Close top-left, Share/Save top-right) for weeks, so the
+  corner is asserted, not just the presence.
+*/
+const topControls = await page.evaluate(() => {
+  const dialog = document.querySelector('[aria-label="Photo viewer"]');
+  if (!dialog) return null;
+  const box = (label) => {
+    const el = dialog.querySelector(`button[aria-label="${label}"]`);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) };
+  };
+  return { showAll: box("Show all photos"), close: box("Close"), vw: window.innerWidth };
+});
+check("viewer has 'Show all photos' top-LEFT at 16,16",
+  topControls?.showAll?.x === 16 && topControls?.showAll?.y === 16,
+  JSON.stringify(topControls?.showAll));
+// 24 from the right, NOT 16. The two corners are NOT symmetric on the reference:
+// left is x16, right is x1846 in a 1910 viewport, which is a 24px inset. Asserted
+// as the measured asymmetry precisely because the instinct is to tidy it to 16.
+check("viewer has 'Close' top-RIGHT at 24 from the right edge",
+  !!topControls?.close && topControls.close.y === 16 &&
+  topControls.vw - (topControls.close.x + topControls.close.w) === 24,
+  JSON.stringify(topControls?.close) + ` vw=${topControls?.vw}`);
+check("both top controls are 40x40",
+  topControls?.showAll?.w === 40 && topControls?.showAll?.h === 40 &&
+  topControls?.close?.w === 40 && topControls?.close?.h === 40,
+  `${topControls?.showAll?.w}x${topControls?.showAll?.h} / ${topControls?.close?.w}x${topControls?.close?.h}`);
 
 check("listing page is inert behind the overlay", await page.evaluate(() => {
   const h1 = document.querySelector("h1");
@@ -82,24 +122,26 @@ check("photo tour is inert beneath the lightbox", await page.evaluate(() => {
 // --- Arrow keys
 await page.keyboard.press("ArrowRight");
 await page.waitForTimeout(250);
-let c = await page.locator('[aria-label="Photo viewer"] [aria-live="polite"]').textContent();
-check("ArrowRight advances", c?.trim().startsWith("9 /"), `counter=${c?.trim()}`);
+let c = await page.locator('[aria-label="Photo viewer"] [data-testid="viewer-counter"]').textContent();
+check("ArrowRight advances", /\b9 of \d+\b/.test(c ?? ""), `counter=${c?.trim()}`);
 await page.keyboard.press("ArrowLeft");
 await page.waitForTimeout(250);
-c = await page.locator('[aria-label="Photo viewer"] [aria-live="polite"]').textContent();
-check("ArrowLeft goes back", c?.trim().startsWith("8 /"), `counter=${c?.trim()}`);
+c = await page.locator('[aria-label="Photo viewer"] [data-testid="viewer-counter"]').textContent();
+check("ArrowLeft goes back", /\b8 of \d+\b/.test(c ?? ""), `counter=${c?.trim()}`);
 
 // --- Clamp at start (don't wrap)
 for (let i = 0; i < 12; i++) { await page.keyboard.press("ArrowLeft"); }
 await page.waitForTimeout(300);
-c = await page.locator('[aria-label="Photo viewer"] [aria-live="polite"]').textContent();
-check("clamps at first photo (no wrap)", c?.trim().startsWith("1 /"), `counter=${c?.trim()}`);
+c = await page.locator('[aria-label="Photo viewer"] [data-testid="viewer-counter"]').textContent();
+check("clamps at first photo (no wrap)", /\b1 of \d+\b/.test(c ?? ""), `counter=${c?.trim()}`);
 check("prev button disabled at start", await page.locator('[aria-label="Previous photo"]').isDisabled());
 
-// --- Close lightbox -> should reveal the Photo Tour underneath
-await page.keyboard.press("Escape");
+// --- Level 1 of dismissal, driven by the CONTROL rather than the key.
+// Escape and the top-left button must land in the same place; testing only the
+// key would have let the button's target drift unnoticed.
+await page.click('[aria-label="Photo viewer"] button[aria-label="Show all photos"]');
 await page.waitForTimeout(1400);
-check("closing lightbox returns to the tour (not the listing)",
+check("'Show all photos' returns to the tour (not the listing)",
   page.url().includes("modal=PHOTO_TOUR_SCROLLABLE") && !page.url().includes("photo="), page.url());
 
 // --- Close tour -> scroll unlocked
@@ -144,10 +186,10 @@ await page.waitForTimeout(800);
 const lightboxOpen = await page.locator('[aria-label="Photo viewer"]').count() === 1;
 check("DEEP-LINKED: clicking a tour photo opens the lightbox", lightboxOpen, "url=" + page.url());
 const deepCounter = lightboxOpen
-  ? (await page.locator('[aria-label="Photo viewer"] [aria-live="polite"]').textContent())?.trim()
+  ? (await page.locator('[aria-label="Photo viewer"] [data-testid="viewer-counter"]').textContent())?.trim()
   : null;
 check("DEEP-LINKED: lightbox opens at the clicked index (8)",
-  !!deepCounter?.startsWith("8 /"), `counter=${deepCounter ?? "(no lightbox)"}`);
+  /\b8 of \d+\b/.test(deepCounter ?? ""), `counter=${deepCounter ?? "(no lightbox)"}`);
 check("DEEP-LINKED: the click pushed ?photo=7", page.url().includes("photo=7"), page.url());
 
 // Back must close the lightbox and reveal the tour — the URL is the state, so
@@ -157,6 +199,25 @@ await page.waitForTimeout(800);
 check("DEEP-LINKED: browser Back closes the lightbox, keeps the tour",
   await page.locator('[aria-label="Photo viewer"]').count() === 0 &&
   await page.locator('[role="dialog"]').count() === 1, "url=" + page.url());
+
+/*
+  --- LEVEL 2 FROM INSIDE THE VIEWER: top-right Close skips the tour entirely.
+
+  The two top controls have DIFFERENT targets and that is the whole point of the
+  restructure: top-left goes back one level, top-right leaves the stack. Reopen
+  the viewer and drive the other one.
+*/
+await page.click('[role="dialog"] button[aria-label*="photo 8 of 43"]');
+await page.waitForTimeout(800);
+await page.click('[aria-label="Photo viewer"] button[aria-label="Close"]').catch(() => {});
+await page.waitForTimeout(1200);
+check("viewer's top-right Close exits the whole stack, not just one level",
+  await page.locator('[role="dialog"]').count() === 0 && !page.url().includes("modal="),
+  "url=" + page.url());
+
+// Reopen the tour for the Close-button check below, which the exit above closed.
+await page.goto(`${url}/?modal=PHOTO_TOUR_SCROLLABLE`, { waitUntil: "load", timeout: 60000 });
+await page.waitForTimeout(1800);
 
 // The tour's own Close button died in the same regression; Escape did not, so
 // only clicking it catches this.

@@ -208,7 +208,8 @@ export function ListingPage({
         <Lightbox
           photos={listing.photos}
           initialIndex={overlay.photoIndex}
-          onClose={closeLightbox}
+          onShowAllPhotos={closeLightbox}
+          onClose={closeOverlay}
         />
       )}
     </>
