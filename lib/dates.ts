@@ -20,9 +20,27 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export function isIsoDate(value: string): value is IsoDate {
   if (!ISO_DATE.test(value)) return false;
-  // Round-tripping rejects real-looking impossibilities like 2026-02-30, which
-  // Date would otherwise roll forward into March without complaint.
-  return toIsoDate(parseIsoDate(value)) === value;
+
+  const date = parseIsoDate(value);
+
+  /*
+    TWO DIFFERENT KINDS OF WRONG, and only one of them used to be handled.
+
+    "2026-02-30" PARSES — Date accepts it and rolls it into March — so the
+    round-trip below is what rejects it.
+
+    "2026-13-01" does NOT parse. There is no thirteenth month, so Date returns
+    an Invalid Date, and calling `.toISOString()` on that THROWS a RangeError
+    rather than returning something the comparison could reject. Because this
+    guard backs `lib/schemas.ts`, that exception surfaced as a 500 from
+    `?from=2026-13-01` on the availability and quote routes — a crash on a
+    validator whose entire job is to not crash on bad input.
+
+    The NaN check has to come first. `scripts/check-dates.ts` pins both cases.
+  */
+  if (Number.isNaN(date.getTime())) return false;
+
+  return toIsoDate(date) === value;
 }
 
 /** `YYYY-MM-DD` -> Date at UTC midnight. */

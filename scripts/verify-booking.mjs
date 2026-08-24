@@ -21,12 +21,39 @@ const addDays = (iso, days) =>
 // --- Pick a stay from the SERVER's availability, so the test never guesses which
 // --- dates happen to be open. A hardcoded date would start failing the moment the
 // --- seed's blocked pattern shifted.
+// A FULL YEAR, not 200 days. The seed writes 365 nights, and asking for all of
+// them is what lets the boundary probes below always find a year end — with a
+// 200-day window, whether this suite tests 31 Dec at all depended on the month
+// you happened to run it in.
+const today = new Date().toISOString().slice(0, 10);
 const availability = await fetch(
-  `${base}/api/listings/${SLUG}/availability?from=${new Date().toISOString().slice(0, 10)}&to=${addDays(new Date().toISOString().slice(0, 10), 200)}`,
+  `${base}/api/listings/${SLUG}/availability?from=${today}&to=${addDays(today, 364)}`,
 ).then((r) => r.json());
 
 const open = new Set(
   availability.nights.filter((n) => !n.isBlocked).map((n) => n.date),
+);
+
+/*
+  THE FIXTURE'S OWN EXPIRY DATE.
+
+  `prisma/seed.ts` writes 365 nights starting from the day it ran, and dev.db is
+  committed. So a database seeded months ago silently runs out: the calendar
+  quietly shows every night as blocked — because a night with no rate row is
+  treated as unavailable — and the failure looks like a booking bug rather than a
+  stale fixture. Asserting the window here names it in one line instead.
+
+  Half a year of runway is the threshold: the card requests twelve months, so
+  anything less than that is already partly empty, and less than six is about to
+  break the stay-picking above.
+*/
+const horizon = availability.nights.length
+  ? availability.nights[availability.nights.length - 1].date
+  : today;
+check(
+  "the seeded calendar still covers the months ahead",
+  horizon >= addDays(today, 180),
+  `availability ends ${horizon}; re-run \`npm run db:seed\``,
 );
 
 // A stay needs THREE consecutive open nights so that check-in, the night between
@@ -237,6 +264,66 @@ if (tampered.reservation) {
   check("a client-supplied total is ignored", false,
     `could not test: ${tampered.error?.code}`);
 }
+
+// --- CALENDAR BOUNDARIES, PRICED DIRECTLY AGAINST THE API.
+//
+// Everything above picks whichever stay the seeded calendar happens to offer,
+// which means the boundaries only get tested on the days they happen to come up.
+// That is exactly how the month-straddling paging bug survived for weeks: the
+// code never changed, the date did.
+//
+// These probe the boundaries deliberately, every run. They go through /quote
+// rather than the UI because the arithmetic is what is under test — whether a
+// stay spanning a month end or a year end is priced for the right number of
+// nights — and a UI path would put the picker's paging between the assertion and
+// the thing it is asserting.
+const spanningStay = (predicate) => {
+  for (const night of availability.nights) {
+    const next = addDays(night.date, 1);
+    if (open.has(night.date) && open.has(next) && predicate(night.date, next)) {
+      return { checkIn: night.date, checkOut: addDays(night.date, 2) };
+    }
+  }
+  return null;
+};
+
+const quoteNights = async (stay) => {
+  const r = await fetch(`${base}/api/listings/${SLUG}/quote`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ ...stay, guests: 1 }),
+  }).then((res) => res.json());
+  return r.quote ? r.quote.nights : `error ${r.error?.code}`;
+};
+
+const monthEnd = spanningStay((a, b) => a.slice(5, 7) !== b.slice(5, 7));
+check(
+  "a stay straddling a month end is priced for two nights",
+  monthEnd ? (await quoteNights(monthEnd)) === 2 : false,
+  monthEnd ? `${monthEnd.checkIn} -> ${monthEnd.checkOut}` : "no open pair spans a month end",
+);
+
+// The year end is the case a 200-day window used to miss entirely for half the
+// year. A failure to FIND one is reported as a failure, not skipped: a test that
+// could not run must never read as a test that passed.
+const yearEnd = spanningStay((a, b) => a.slice(0, 4) !== b.slice(0, 4));
+check(
+  "a stay straddling the year end is priced for two nights",
+  yearEnd ? (await quoteNights(yearEnd)) === 2 : false,
+  yearEnd ? `${yearEnd.checkIn} -> ${yearEnd.checkOut}` : "no open pair spans 31 Dec in the seeded year",
+);
+
+// A well-formed date that does not exist must be REFUSED, not crash the route.
+// `?from=2026-13-01` used to return 500: `isIsoDate` called `.toISOString()` on
+// an Invalid Date and threw out of the zod refine that was meant to reject it.
+const impossible = await fetch(
+  `${base}/api/listings/${SLUG}/availability?from=${availability.today.slice(0, 4)}-13-01`,
+);
+check(
+  "an impossible date is rejected, not crashed on",
+  impossible.status === 400 || impossible.status === 422,
+  `status ${impossible.status}`,
+);
 
 check("no console or page errors during the flow", errors.length === 0,
   errors.slice(0, 3).join(" | "));
