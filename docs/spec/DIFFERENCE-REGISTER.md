@@ -15,9 +15,11 @@ Two classes, kept strictly apart:
   string somebody measured. Every Class A row carries the number. These are
   defects and each one is either fixed or assigned.
 - **Class B — a deliberate divergence.** We know the reference does X and we do
-  Y *on purpose*, with a reason that survives being read out loud. Four rows,
-  no more; this section is not a place to file things we could not be bothered
-  to fix.
+  Y *on purpose*, with a reason that survives being read out loud. This section
+  is not a place to file things we could not be bothered to fix. It also carries
+  the **inert controls**: B4 established that mirroring a dead control is a
+  decision, and a decision has to be written down — an unregistered inert control
+  is indistinguishable from an unfinished one to the next reader.
 
 Measured values throughout come from `_reference/spec/captured/*.json`, captured
 24 Aug 2026 at 1910×1000 DPR 1 over CDP against a real Chrome session, and are
@@ -90,16 +92,14 @@ each is a standing question:
 | A31 | **Second calendar month** | October 2026 **and November 2026**, side by side | "November 2026" not rendered | Creed |
 | A32 | **"How reviews work"** | present in the reviews hero | absent | Creed |
 | A33 | **Payment-protection notice** | "To help protect your payment, always use Airbnb to send money and communicate with hosts." | absent | Creed |
+| A35 | **Payment-protection notice size** | 12px, weight 400, `rgb(113,113,113)` — a `<span>`, 498×17 at 810,5429 | `text-sm` (14px) | Creed |
 | A34 | **Lightbox control set** | four controls, all 40x40: **"Show all photos"** top-left at 16,16 (returns to the tour) and **Close** top-**right** at 1846,16. No Share/Save in the viewer. | Close top-**left**, Share and Save top-right, counter centred | unassigned |
-| A25 | **h1 box** | 387.5, **121**, 585.55, 30 | 388, **117**, **602**, 30 — 4px high, 16px wide | Kelly |
-| A26 | **"Show all photos" box** | 1341.61, 612, **141.89**, 32 | 1347, 612, **136**, 32 — 6px narrow | Kelly |
 
-A24–A26 were surfaced by `compare.mjs` during the P3-E gate run, against a
-production build on :3101. The three are probably one cause: y/x are exact
-everywhere the box is set by layout, and drift only where the box is set by
-*text*, which points at glyph metrics rather than at our CSS. A26 is the
-clearest case — same x-origin family, same height, 6px narrower — so the icon
-gap or horizontal padding is the first thing to measure, not the font.
+A24–A26 were surfaced by `compare.mjs` during the P3-E gate run. The reading at
+the time — "x and y are exact wherever the box is set by layout, and drift only
+where the box is set by *text*" — turned out to be right, and pointed at the
+cause. A25 and A26 are now closed below; they were not our defects. **A24 is the
+one to be careful with.**
 
 A24 is the one to be careful with. **+438px is expected, not a layout defect**,
 and must not be "fixed" on sight. Our page legitimately holds more content than
@@ -134,6 +134,78 @@ a middle index first. Pinning an unverified number is precisely how A1 happened.
 
 ---
 
+## Text-derived widths in the capture are NOT Cereal metrics
+
+**Airbnb Cereal VF never loaded on the machine the reference was captured from.**
+Every width in `capture-listing.json` that is set by glyphs rather than by CSS is
+therefore `system-ui` (Segoe UI on Windows) metrics, and must not be used as a
+target. This closes A25 and A26, and it disqualifies a whole class of numbers.
+
+### The measurement
+
+Our h1 renders 602.23 wide; the capture says 585.55. Same string, same 26px, same
+weight 500, same 30px line-height, `letter-spacing: normal` on both. Sweeping the
+variables one at a time against the 585.55 target:
+
+| candidate | width | vs capture |
+|---|---|---|
+| Cereal @ 400 | 591.58 | −6.03 |
+| Cereal @ 500 (what we ship) | 602.23 | −16.68 |
+| Cereal @ 500, `letter-spacing: -0.0143em` | 585.14 | −0.41 |
+| **`"Segoe UI"` @ 500** | **585.55** | **0.00** |
+| **`system-ui` @ 500** | **585.55** | **0.00** |
+
+An exact match to the hundredth of a pixel, and no weight or letter-spacing value
+reproduces it. Confirmed on a second, independent string at a different size —
+the "More stays nearby" h2 at 22px: capture 183.39, Segoe UI **183.39**, Cereal
+188.25. Two exact matches at two sizes is not coincidence.
+
+The reference's declared stack is `"Airbnb Cereal VF", Circular, -apple-system,
+BlinkMacSystemFont, "system-ui", Roboto, "Helvetica Neue", sans-serif`. It fell
+through to the `"system-ui"` entry.
+
+### Why nobody caught it
+
+`getComputedStyle().fontFamily` returns the **declared list**, never the face the
+browser actually used. `CAPTURE-FINDINGS.md` compared that string against ours,
+found them equivalent, and recorded "matches what we ship" — which was true of
+the *declaration* and false of the *rendering*. There is no computed property
+that reports the resolved face; the only way to detect this is to measure a
+string and compare it against candidate faces, which is what was finally done.
+
+### What is still safe to use
+
+Unaffected — these come from CSS, not from glyphs:
+
+- every layout box: the 1120 column, the 652 left column, the 97 gutter
+- the hero grid: 560×494, 272×243, the 8px gaps
+- **every height**, because line-heights and box heights are set explicitly —
+  which is exactly why the h1's height matched at 30 while its width did not
+- colours, radii, weights, font sizes, line heights
+
+Disqualified as targets — content-sized widths, all of them Segoe metrics:
+
+- the h1 (585.55) and the "More stays nearby" heading (183.39)
+- the two "Show all …" buttons (205.25 and 187.05) and "Show all photos" (141.89)
+- Share (79.58) and Save (73.38), and the Claim button (63.72)
+- the review-topic chips, measured 115 to 166
+
+**One number survives the correction and is worth keeping.** Under Segoe metrics
+the two "Show all …" buttons have *exactly* 48px of non-text width each — 24px of
+padding per side, the same on both. Under Cereal metrics they come out at 45.05
+and 45.08, which is neither round nor self-consistent. The padding is real and
+derivable even though the widths are not.
+
+### The rule
+
+**Never take a width from the capture for an element whose box is sized by its
+own text.** Take the padding, the height, the radius and the position; derive the
+width from our own font. `compare.mjs` still prints the h1 width delta — it is
+left visible on purpose, with the explanation here, because deleting the check
+would only invite someone to re-derive the whole thing from scratch.
+
+---
+
 ## Class A — closed (P3-F, the lightbox and two control shapes)
 
 | # | What | Reference | We shipped | Where |
@@ -142,6 +214,8 @@ a middle index first. Pinning an unverified number is precisely how A1 happened.
 | A18 | **Lightbox Previous/Next** | **40×40**, radius 50%, **white** background, 1px border, dark icon | 36×36, black background, `border-white/40`, white icon | `Lightbox.tsx` |
 | A21 | **Share / Save height** | **35** (79.58×35 and 73.38×35 at y121) | `h-8` (32) | `TitleBlock.tsx` |
 | A22 | **Sticky-bar Reserve shape** | 89.44×40, radius **999px** | `rounded-md` | `SectionNav.tsx` |
+| A25 | **Title row vertical alignment** | the h1 **and** the Share/Save buttons both start at **y121** — the same top edge despite being 30px and 35px tall, i.e. top-aligned with a 32px inset | `items-center`, which put the h1 at y116.5 and the buttons at y114 | `TitleBlock.tsx` |
+| A26 | **h1 / control widths** | *(withdrawn — capture measured in fallback metrics, see above)* | not a defect | — |
 
 ### A17 and A18 are one change, and the second consequence was not the obvious one
 
@@ -259,6 +333,53 @@ Logged on the board as human-answerable, so it can be overturned in one line.
 Note the count is a separate question: the button says 19 because `reviewCount`
 is 19, while only 6 reviews exist. That is the reference's own inconsistency,
 and we mirror it faithfully.
+
+### B5 — Two more inert controls, same ruling as B4
+
+Built by Creed; registered here because B4's ruling generalises — if we mirror a
+dead control, that is a decision and it gets recorded.
+
+| Control | Reference behaviour |
+|---|---|
+| **"Report this listing"** | present below the booking card, does nothing |
+| **"How reviews work"** | present in the reviews hero, does nothing |
+
+**Two, not three.** This was dispatched as three, including "the
+payment-protection notice's affordance". There is no such control: the notice is
+a plain `<p>` in `MeetYourHost.tsx`, and on the reference it is a `<span>` that
+appears in the captured text nodes and in **none** of the captured controls. It
+is text on both sides, correctly, and registering it as a mirrored inert control
+would have recorded a decision nobody made. Its real defect is a type size, filed
+as A35.
+
+Both follow B4's constraints: rendered as `<button>` rather than `<a>` so
+they are reachable and announced correctly **without claiming a destination that
+does not exist**, no `disabled` attribute, accessible names intact, not hidden
+from assistive tech, and the deliberateness commented at each call site rather
+than only here.
+
+The `<button>`-not-`<a>` choice is worth keeping explicit: an `<a>` with no
+`href` is not focusable and announces as plain text, and an `<a href="#">` claims
+a navigation that does not happen. A button that does nothing is the honest
+shape for a control that does nothing.
+
+### B6 — The inline calendar renders captured state; the booking picker is live
+
+The listing page's inline calendar reproduces the reference's **selected** state
+— "18 Oct 2026 - 23 Oct 2026" — as fixed, `aria-hidden` presentation. The date
+picker inside the booking card is a real control reading real availability from
+the API.
+
+This is the one place in the build where a rendered string is not derived from
+live data, and Creed flagged it himself rather than leaving it to be discovered.
+It is correct: the two serve different jobs. The inline calendar exists to match
+a screenshot of a page whose dates are fixed, and driving it from live
+availability would make it disagree with the reference on any date other than the
+captured one. The booking picker exists to be used, so it must be live.
+
+`aria-hidden` on the presentational one matters — without it, assistive tech
+would announce two calendars offering conflicting dates on the same page.
+
 
 ---
 

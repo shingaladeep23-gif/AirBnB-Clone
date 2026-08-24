@@ -237,10 +237,30 @@ y174 / y425. **Gap is exactly 8px** both axes. `object-fit: cover` throughout.
 
 Other measured radii: thumbnails and the map button are **8px**.
 
-### Fonts
+### Fonts — CORRECTED 24 Aug 2026, read this before using any width
 
 `"Airbnb Cereal VF", Circular, -apple-system, BlinkMacSystemFont, "system-ui", Roboto, "Helvetica Neue", sans-serif`
-— matches what we ship.
+
+That stack matches what we ship. **The rendering does not.** Airbnb Cereal VF
+never loaded during this capture — the page fell through to the `"system-ui"`
+entry, which is Segoe UI on Windows. So **every width in this file that is set by
+glyphs rather than by CSS is Segoe metrics and must not be used as a target.**
+
+Proof: the h1 string measures 585.55 here; in Segoe UI it is 585.55 to the
+hundredth of a pixel, and in Cereal at the same 26px/500 it is 602.23. No weight
+or letter-spacing value reproduces 585.55. Confirmed on a second string at a
+different size — the "More stays nearby" h2, captured at 183.39, Segoe 183.39,
+Cereal 188.25.
+
+The original claim above was not careless: `getComputedStyle().fontFamily`
+returns the **declared list**, never the face the browser actually used, and
+there is no computed property that reports the resolved face. Comparing the two
+strings was the obvious check and it passes while being wrong.
+
+Heights, positions, colours, radii, weights and font sizes are all unaffected —
+they come from CSS. Full analysis, and the list of which specific numbers are
+disqualified, is in `DIFFERENCE-REGISTER.md` under "Text-derived widths in the
+capture are NOT Cereal metrics".
 
 Page height **6266** at this viewport (we measured 6259 in recon; the delta is
 content, not layout).
