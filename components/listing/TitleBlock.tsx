@@ -19,14 +19,14 @@ export function TitleBlock({ listing }: { listing: Listing }) {
       <div className="flex items-center gap-1">
         <button
           type="button"
-          className="flex h-8 items-center gap-2 rounded-md px-2.5 transition-colors duration-fast hover:bg-surface-hover"
+          className="flex h-control-h items-center gap-2 rounded-md px-2.5 transition-colors duration-fast hover:bg-surface-hover"
         >
           <ShareIcon size={14} />
           <span className="text-sm font-medium text-fg underline">Share</span>
         </button>
         <button
           type="button"
-          className="flex h-8 items-center gap-2 rounded-md px-2.5 transition-colors duration-fast hover:bg-surface-hover"
+          className="flex h-control-h items-center gap-2 rounded-md px-2.5 transition-colors duration-fast hover:bg-surface-hover"
         >
           <HeartIcon size={14} />
           <span className="text-sm font-medium text-fg underline">Save</span>

@@ -50,7 +50,7 @@ export function ReservationConfirmation({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay/60 p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/60 p-6">
       <div
         ref={containerRef}
         role="dialog"

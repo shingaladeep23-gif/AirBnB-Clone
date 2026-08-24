@@ -74,12 +74,24 @@
   --color-surface-raised: #ffffff;
   --color-surface-hover: #f7f7f7;
   --color-surface-inverse: #000000;
-  /* FULLY OPAQUE, deliberately. At 0.92 the Lightbox let the Photo Tour's white
-     surface show through: both layers' Share/Save controls rendered side by side
-     and tour content bled through around the photo. Airbnb's viewer is solid
-     black. The Lightbox is the only consumer, so there is no translucent use to
-     preserve — if one ever appears, split the token rather than reopening this. */
-  --color-surface-overlay: #000000;
+  /* WHITE. MEASURED: the reference's Photo viewer backdrop is rgb(255,255,255)
+     at z-index 140 with `transition: opacity 0.25s`.
+     This token was #000000 on the reasoning that "Airbnb's viewer is solid
+     black" — which is what every instinct says a photo lightbox should be, and
+     it was wrong. Nobody had measured it. Same failure as the 18px radius, which
+     is why the tags at the top of this file are not optional.
+     Still fully opaque: at 0.92 the viewer let the Photo Tour's surface show
+     through and both layers' controls rendered side by side. */
+  --color-surface-overlay: #ffffff;
+  /* SPLIT OFF from --color-surface-overlay when that went white, because the two
+     had quietly become different jobs. This is the dim behind a centred modal
+     (the reservation confirmation, used at /60); the overlay above is a
+     full-bleed backdrop. Flipping one token would have turned the confirmation's
+     dim into a white wash. The old comment predicted exactly this — "if a
+     translucent use ever appears, split the token" — so here it is.
+     INFERRED: the reference has no equivalent modal, so there is nothing to
+     measure. */
+  --color-scrim: #000000;
 
   /* --------------------------------------------------------------------------
    * BORDER — hairlines. Airbnb uses two weights: a visible divider (#DDDDDD)
@@ -232,6 +244,9 @@
   --spacing-card-w: 318px; /* MEASURED: sleeping-arrangement photos are 318x212 at
                               x387.5 and x721.5 — 318 + 16 + 318 = 652, i.e.
                               exactly two cards to the content column */
+  --spacing-control-h: 35px; /* MEASURED: the small pill controls that sit beside
+                                a heading — Share 79.58x35, Save 73.38x35, and
+                                the promo card's Claim 63.72x35. We shipped 32. */
   --spacing-button-lg-h: 49px; /* MEASURED: "Show all 50 amenities" is 205.25x49
                                   and "Show all 19 reviews" is 187.05x49. Every
                                   other button on the page is h48 or h35, so this

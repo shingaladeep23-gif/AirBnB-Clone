@@ -95,7 +95,7 @@ export function SectionNav({ listing }: { listing: Listing }) {
           <button
             type="button"
             tabIndex={revealed ? undefined : -1}
-            className="h-10 rounded-md bg-gradient-to-r from-cta-from via-cta-via to-cta-to px-6 text-sm font-medium text-fg-inverse transition-opacity duration-fast hover:opacity-95"
+            className="h-10 rounded-pill bg-gradient-to-r from-cta-from via-cta-via to-cta-to px-6 text-sm font-medium text-fg-inverse transition-opacity duration-fast hover:opacity-95"
           >
             Reserve
           </button>

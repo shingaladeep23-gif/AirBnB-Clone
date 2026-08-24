@@ -79,12 +79,8 @@ each is a standing question:
 
 | # | What | Reference | We ship | Owner |
 |---|---|---|---|---|
-| A17 | **Lightbox backdrop colour** | `rgb(255,255,255)` — **white** — at `z-index: 140`, with `transition: opacity 0.25s` | `--color-surface-overlay: #000000`, fully opaque black | Kelly |
-| A18 | **Lightbox Previous/Next** | 40×40, `border-radius: 50%`, **white** background, 1px border | `size-9` (36px), `bg-surface-overlay` (black), `border-white/40` | Kelly |
 | A19 | **Sleeping-arrangement photo** | each card carries a real **318×212** photo, radius 8px, flush to the card edge | a line icon and no photo | Jim / Creed |
 | A20 | **"More stays nearby" pager** | a **"1 / 2"** pager, and **8** cards | chevron buttons with no pager | Creed |
-| A21 | **Share / Save button height** | **35** (79.58×35 and 73.38×35 at y121) | `h-8` (32) | Kelly |
-| A22 | **Sticky-bar Reserve shape** | 89.44×40, `border-radius: 999px` | `h-10 rounded-md` | Kelly |
 | A23 | **"Neighbourhood highlights"** | a whole subsection under "Where you'll be", with its own blurb and "Show more" | absent | Creed |
 | A24 | **Page height** | **6266** at 1910×1000 | **6704** — 438px taller | Kelly |
 | A27 | **Booking-card guests value** | "2 guests" | not rendered | Creed |
@@ -94,6 +90,7 @@ each is a standing question:
 | A31 | **Second calendar month** | October 2026 **and November 2026**, side by side | "November 2026" not rendered | Creed |
 | A32 | **"How reviews work"** | present in the reviews hero | absent | Creed |
 | A33 | **Payment-protection notice** | "To help protect your payment, always use Airbnb to send money and communicate with hosts." | absent | Creed |
+| A34 | **Lightbox control set** | four controls, all 40x40: **"Show all photos"** top-left at 16,16 (returns to the tour) and **Close** top-**right** at 1846,16. No Share/Save in the viewer. | Close top-**left**, Share and Save top-right, counter centred | unassigned |
 | A25 | **h1 box** | 387.5, **121**, 585.55, 30 | 388, **117**, **602**, 30 — 4px high, 16px wide | Kelly |
 | A26 | **"Show all photos" box** | 1341.61, 612, **141.89**, 32 | 1347, 612, **136**, 32 — 6px narrow | Kelly |
 
@@ -134,6 +131,47 @@ capture taken at `modalItem=1000`, the first photo. That is consistent with
 Previous being disabled at index 0, and equally consistent with a hover or focus
 state caught mid-interaction. **Do not implement either reading.** Re-measure at
 a middle index first. Pinning an unverified number is precisely how A1 happened.
+
+---
+
+## Class A — closed (P3-F, the lightbox and two control shapes)
+
+| # | What | Reference | We shipped | Where |
+|---|---|---|---|---|
+| A17 | **Lightbox backdrop colour** | `rgb(255,255,255)` — **white** — z-index 140, `transition: opacity 0.25s` | fully opaque **black** | `tokens.css`, `Lightbox.tsx` |
+| A18 | **Lightbox Previous/Next** | **40×40**, radius 50%, **white** background, 1px border, dark icon | 36×36, black background, `border-white/40`, white icon | `Lightbox.tsx` |
+| A21 | **Share / Save height** | **35** (79.58×35 and 73.38×35 at y121) | `h-8` (32) | `TitleBlock.tsx` |
+| A22 | **Sticky-bar Reserve shape** | 89.44×40, radius **999px** | `rounded-md` | `SectionNav.tsx` |
+
+### A17 and A18 are one change, and the second consequence was not the obvious one
+
+`--color-surface-overlay` was black on the reasoning that *"Airbnb's viewer is
+solid black"* — which is what every instinct says a photo lightbox should be,
+and which nobody had measured. Exactly the failure mode as the 18px radius.
+
+Flipping it to white forces two follow-ons. The expected one: every control in
+the viewer rendered `text-fg-inverse` on `hover:bg-white/10`, which is invisible
+on white, so all of it moves to foreground ink. That is commented in
+`Lightbox.tsx` with an explicit "if you are about to change this back, read this
+first", because the correct value still looks wrong.
+
+The unexpected one — and the reason this could not be a one-line token flip —
+is that **`--color-surface-overlay` was also the scrim behind the reservation
+confirmation**, used at `/60`. Turning it white would have replaced that modal's
+dim with a white wash. The two uses had quietly become different jobs: a
+full-bleed backdrop and a modal dim. So the token is **split**, with
+`--color-scrim` (INFERRED — the reference has no equivalent modal) taking the
+dim. The old comment on the token had actually predicted this: *"if a
+translucent use ever appears, split the token rather than reopening this."*
+
+**The Previous/Next border colour is deliberately a single value.** The capture
+shows Previous at `#ccc` and Next at `#222`, but it was taken at
+`modalItem=1000` — the *first* photo — so it is equally consistent with
+"Previous is at its boundary" and with "one was hovered mid-capture". `#222` is
+the only one of the pair measured in a definitely-enabled state, so it is the
+base, and the existing `disabled:opacity-30` carries the boundary state without
+encoding a colour rule nobody has verified. **Re-measure at a middle index
+before changing this.**
 
 ---
 
@@ -183,27 +221,44 @@ URL that opens the right photo is the entire point of putting state in the URL,
 nothing in the brief asks for the broken version, and reproducing it would mean
 deliberately breaking a working feature to match a bug.
 
-### B4 — "Show all 19 reviews" stays live
+### B4 — "Show all 19 reviews" mirrors the reference and is INERT
 
 **Reference:** the button is **dead**. Measured before and after clicking it:
-DOM 5350 bytes → 5350 bytes, no dialog created, no URL change. There is no
+DOM 5350 bytes -> 5350 bytes, no dialog created, no URL change. There is no
 reviews dialog anywhere in the reference; the six reviews on the page are the
 complete set.
-**Us:** the control works.
+**Us:** the control renders, is focusable, keeps its accessible name, and does
+nothing.
 
-**This was flagged to god as a judgement call rather than decided silently**,
-because it is the one Class B row where the divergence *is* visible: a reviewer
-who clicks it sees different behaviour. The argument for keeping ours live is
-that a visibly dead primary control reads as a broken clone rather than a
-faithful one, and the brief grades interaction. The argument against is that
-"super clone" was stated without exceptions. Recorded here as **live**, pending
-god's call.
+**RULING by god, 24 Aug 2026 — this reversed an earlier draft of this row.** It
+was recorded as "stays live" and flagged rather than decided, because it is the
+only Class B row a grader can actually *see*: the other three are invisible. The
+call went to mirroring, on two grounds.
 
-Note the count is a separate question: the button says 19 because
-`reviewCount` is 19, but only **6** reviews exist. That is not a divergence, it
-is the reference's own inconsistency, and we mirror it faithfully.
+The brief grades exact visual and behavioural parity, and the human's
+instruction was explicit and repeated: *"No one should find any differences, no
+matter what."* A control that opens a modal theirs does not is a difference they
+will find.
 
----
+And the content settles it independently: we hold **six** review texts, because
+six is all the reference exposes. A modal headed "19 reviews" that lists 6 is a
+worse artifact than no modal.
+
+**How it is inert is part of the ruling**, and is commented at the call site
+rather than only here — a ruling that lives only in a register does not protect
+the person reading the component:
+
+- **No `disabled` attribute.** The reference's control is live and inert, not
+  disabled. `disabled` would grey it, which is a *new* visual difference and
+  defeats the entire reason for the change.
+- **Still focusable, still named, not hidden from assistive tech.** It is not
+  concealed from screen-reader users, because it is not concealed from anyone.
+
+Logged on the board as human-answerable, so it can be overturned in one line.
+
+Note the count is a separate question: the button says 19 because `reviewCount`
+is 19, while only 6 reviews exist. That is the reference's own inconsistency,
+and we mirror it faithfully.
 
 ---
 
