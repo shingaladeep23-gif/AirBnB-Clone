@@ -71,7 +71,7 @@ export function MeetYourHost({
 
           {coHosts.length > 0 && (
             <div className="pt-8">
-              <h3 className="text-lg font-medium text-fg">Co-hosts</h3>
+              <h3 className="text-lg font-medium text-fg">Co-Hosts</h3>
               <ul className="flex flex-wrap gap-6 pt-4">
                 {coHosts.map((coHost) => (
                   <li key={coHost.id} className="flex items-center gap-2">

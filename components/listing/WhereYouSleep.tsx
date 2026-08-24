@@ -20,7 +20,11 @@ export function WhereYouSleep({
 
   return (
     <section className="py-8">
-      <h2 className="text-xl font-medium text-fg">Where you&rsquo;ll sleep</h2>
+      {/* Straight U+0027, deliberately. The reference writes "Where you'll sleep"
+          with a straight apostrophe and "Where you’ll be" with a curly one — it is
+          inconsistent with itself, and matching it means being inconsistent too.
+          Verified codepoint-wise; scripts/check-copy-verbatim.mjs guards it. */}
+      <h2 className="text-xl font-medium text-fg">Where you&apos;ll sleep</h2>
 
       <div className="flex gap-4 pt-6">
         {arrangements.map((arrangement) => (

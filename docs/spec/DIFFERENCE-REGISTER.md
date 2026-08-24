@@ -87,6 +87,13 @@ each is a standing question:
 | A22 | **Sticky-bar Reserve shape** | 89.44×40, `border-radius: 999px` | `h-10 rounded-md` | Kelly |
 | A23 | **"Neighbourhood highlights"** | a whole subsection under "Where you'll be", with its own blurb and "Show more" | absent | Creed |
 | A24 | **Page height** | **6266** at 1910×1000 | **6704** — 438px taller | Kelly |
+| A27 | **Booking-card guests value** | "2 guests" | not rendered | Creed |
+| A28 | **"Report this listing"** | present, below the card | absent | Creed |
+| A29 | **Translation notice** | "Some info has been automatically translated. Show original", above the description | absent | Creed |
+| A30 | **Booking-card date range** | "18 Oct 2026 - 23 Oct 2026" | different format | Creed |
+| A31 | **Second calendar month** | October 2026 **and November 2026**, side by side | "November 2026" not rendered | Creed |
+| A32 | **"How reviews work"** | present in the reviews hero | absent | Creed |
+| A33 | **Payment-protection notice** | "To help protect your payment, always use Airbnb to send money and communicate with hosts." | absent | Creed |
 | A25 | **h1 box** | 387.5, **121**, 585.55, 30 | 388, **117**, **602**, 30 — 4px high, 16px wide | Kelly |
 | A26 | **"Show all photos" box** | 1341.61, 612, **141.89**, 32 | 1347, 612, **136**, 32 — 6px narrow | Kelly |
 
@@ -97,10 +104,18 @@ everywhere the box is set by layout, and drift only where the box is set by
 clearest case — same x-origin family, same height, 6px narrower — so the icon
 gap or horizontal padding is the first thing to measure, not the font.
 
-A24 is the one to be careful with: 438px of extra height is not necessarily a
-defect, because our page and the reference no longer hold identical content
-(8 similar listings, the reworked reviews block). It needs decomposing
-section-by-section before anyone "fixes" it. Filed as measured, not diagnosed.
+A24 is the one to be careful with. **+438px is expected, not a layout defect**,
+and must not be "fixed" on sight. Our page legitimately holds more content than
+it did when the old target was set: 8 rail cards instead of 6, 6 reviews instead
+of 5, a Neighbourhood-highlights block that did not exist, 2 sleeping-arrangement
+cards instead of 1, and 2 extra host-fact lines. Nobody should touch spacing
+until that delta has been decomposed section by section — **the residual after
+subtracting the added content is the real finding**, and it may be zero.
+
+A27–A33 came out of `scripts/check-copy-verbatim.mjs` (below) rather than from
+reading the page, which is the point: seven of them are strings that are simply
+absent, and absence is invisible when you are checking whether what *is* there
+looks right.
 
 `compare.mjs` itself quoted a stale `6259` for the reference page height — a
 screenshot-era recon estimate that predates the CDP capture. Corrected to the
@@ -189,6 +204,61 @@ Note the count is a separate question: the button says 19 because
 is the reference's own inconsistency, and we mirror it faithfully.
 
 ---
+
+---
+
+## The copy gate — `scripts/check-copy-verbatim.mjs`
+
+Two of the differences in this file were **invisible to reading**, and that is
+the argument for the gate existing at all:
+
+- The reference writes **"Where you'll sleep" with a STRAIGHT U+0027** and
+  **"Where you’ll be" with a CURLY U+2019**. It is inconsistent with itself.
+  We rendered curly in both, so one heading was wrong and no amount of
+  proofreading was going to surface it. Matching the reference here means
+  reproducing its inconsistency. *(Fixed.)*
+- The reference capitalises **"Co-Hosts"**. We had "Co-hosts". *(Fixed.)*
+- Creed's parallel find: the house rules use **U+2009 THIN SPACE** before "pm"
+  and "am", not an ordinary space.
+
+The gate renders our page in a real browser and asserts that every text node the
+reference captured appears in ours, **codepoint for codepoint**. Three design
+decisions in it are load-bearing:
+
+1. **Rendered-to-rendered, not source-to-rendered.** Reading string literals out
+   of `lib/listing.ts` means re-implementing JS escape semantics (`\u{1F334}`,
+   ` `, concatenated literals) — which is the exact layer the bug hides in.
+   The first version of this script did that and reported 10 phantom failures
+   from its own broken escape handling.
+2. **It uses a real DOM.** The page streams its content as an RSC flight payload
+   inside `<script>` tags, so scraping the served HTML finds every string only in
+   escaped, chunk-split form and reports 127/129 missing — indistinguishable
+   from a catastrophic content failure.
+3. **It never collapses `\s`.** U+2009 and U+00A0 both match `\s` in JavaScript,
+   so a tidy-looking `.replace(/\s+/g, " ")` on either side would silently
+   delete the entire bug class. Only literal `\n` runs are folded, because those
+   come from our CSS box model rather than from our copy.
+
+Current state: **113 of 121 reference strings verbatim**, with the 8 failures
+filed above as A27–A33. Wired into `npm run verify` as `check:copy`; skips
+cleanly when the gitignored capture is absent.
+
+---
+
+## Environment notes, not defects
+
+- **The booking suite passes 26/26.** It previously read 25/26: Playwright's
+  browser binaries were missing from the machine, so it fell back to real Chrome
+  via `channel:'chrome'`, real Chrome requests `/favicon.ico`, the repo has no
+  favicon, it 404s, and the "no console errors" assertion tripped. Running
+  `npx playwright install chromium` restored the headless shell, which does not
+  request a favicon. **The underlying gap is still real** — the repo has no
+  favicon and would fail again under `channel:'chrome'`. Worth adding one.
+- **Two servers were live during this gate run.** `:3100` was held by an older
+  process serving a stale build; measuring against it would have produced
+  phantom failures, so this pass used `:3101` against a freshly built bundle.
+  Restart the server after any rebuild — a stale `next start` serves a shell
+  whose chunks 404, and the page renders blank rather than erroring.
 
 ## What this register does not cover
 
