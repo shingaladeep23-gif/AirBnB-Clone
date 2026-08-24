@@ -251,8 +251,13 @@ before changing this.**
 
 ## Class B — deliberate divergences
 
-Four. Each is a case where we know exactly what the reference does and are not
-copying it, with the reason.
+Six — B1 through B6 below. Each is a case where we know exactly what the
+reference does and are not copying it, with the reason.
+
+(This said "Four" while six entries sat under it. B5 and B6 were added as rulings
+and the summary line above them was not touched — the same failure that put the
+*superseded* draft of B4 into the README. A count in a heading is a claim like any
+other: when you add a row, recount.)
 
 ### B1 — Descriptive `alt` text, against the reference's `alt=""`
 

@@ -16,6 +16,7 @@ per-agent inboxes. One orchestrator plans and reviews; specialised workers execu
 | **Creed** | Implementation | Scaffold, design tokens, all three views |
 | **Kelly** | QA / bug registry | Parity audit harness, a11y + behaviour audits, `BUGS.md` |
 | **Jim** | Research / summarisation | Below-the-fold structural spec from asset mining + Airbnb anatomy research |
+| **Ryan** | Documentation / reconciliation | README, this file, `CAPTURE-METHOD.md`; keeping every published claim true as the code moved under it |
 
 Coordination surfaces: `board.md` (narrative plan, single scribe), `tasks.json` (kanban with
 assignees and dependencies), and per-agent `inbox/` message queues.
@@ -31,9 +32,31 @@ where agent work goes wrong:
    rediscover the same facts and burn budget.
 4. **BOUNDARIES** — scope limits, file-ownership rules, and an explicit definition of done.
 
-Single-writer file ownership was enforced throughout: Creed alone writes app source, Kelly
-alone writes `BUGS.md`, Jim writes exactly one spec file. This prevents the most common
+Single-writer file ownership was the rule: Creed alone writes app source, Kelly alone
+writes `BUGS.md`, Jim writes exactly one spec file. It targets the most common
 multi-agent failure mode, which is two agents silently overwriting each other.
+
+**It held for files and broke twice for everything else, and both breaks taught us more
+than the rule did.**
+
+*Ownership partitioned by FILE does not survive a change to a shared TYPE.* One
+`lib/types.ts` reshape landed the tree red with eleven consumer errors spread across three
+agents' files, eight of which then held two agents' interleaved edits and could not be
+split apart. The rule now reads: *whoever changes a shared type owns every consumer of it
+in the same commit.*
+
+*A shared build directory is shared state too.* With four agents verifying at once, all of
+them building into the same `.next`, one agent's build deleted the output tree from under
+another's already-running server. The victim saw a 500 and a missing manifest —
+indistinguishable from a routing bug in the code under test. Two behavioural checks
+"failed" that way and both were actually green. The fix was per-worker build output via
+`NEXT_DIST_DIR`, and the lesson generalises: *anything two agents write to concurrently
+needs an owner, not just source files.*
+
+Concurrency was not only a cost. Two agents editing the lightbox at the same time is how
+the orchestrator's assumption that its two top controls sat symmetrically at 16px got
+corrected — the other agent had already measured the real 24px right-hand inset. The
+better measurement won because both were written down with their reasoning attached.
 
 ## Sub-agent and skill configs
 
