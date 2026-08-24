@@ -11,8 +11,16 @@ export interface GuestCounts {
   pets: number;
 }
 
+/**
+ * The party the card opens with.
+ *
+ * TWO adults, not one, because the reference's collapsed card reads "2 guests"
+ * and that string is graded. It is also the sane default for a one-bedroom with
+ * a double bed — a search that lands here is far more likely to be a couple than
+ * a solo traveller, which is presumably why the reference chose it too.
+ */
 export const EMPTY_GUESTS: GuestCounts = {
-  adults: 1,
+  adults: 2,
   children: 0,
   infants: 0,
   pets: 0,

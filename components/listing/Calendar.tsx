@@ -4,12 +4,12 @@ import { ChevronIcon } from "@/components/ui/icons";
 /**
  * Two-month check-in calendar (BELOW-FOLD-SPEC §9).
  *
- * LOWEST-CONFIDENCE SECTION ON THE PAGE. No captured asset backs it, and Jim's
- * height budget overshoots by ~750px, which means at least one section is too
- * generous. Michael's call (21 Aug) was to build it: real Airbnb listing pages
- * carry a calendar, and the overshoot is larger than this block, so deleting it
- * wouldn't reconcile the arithmetic anyway. It is the designated swing block —
- * if a reference screenshot shows no calendar, this is the first thing to cut.
+ * NO LONGER SPECULATIVE. This used to be the page's designated swing block —
+ * built on the reasoning that real Airbnb listings carry a calendar, and marked
+ * as the first thing to cut if the reference turned out not to have one. The
+ * 24 Aug capture settles it: the reference does render this section, headed
+ * "5 nights in Candolim" with a selected range and two months, and "Clear dates"
+ * below. See `docs/spec/CAPTURE-FINDINGS.md`.
  *
  * The grid is presentational: no date-selection behaviour was in scope for T4.
  * It is rendered as a real table so the day/date relationship is not purely
@@ -27,9 +27,22 @@ function monthCells(startWeekday: number, days: number): (number | null)[] {
   ];
 }
 
+/*
+  October and November 2026 — the two months the reference shows side by side,
+  with the stay it has selected. Both the range and the pair of months are its
+  captured state, not a live calendar: this block is presentational, and the
+  interactive picker is the one inside the booking card, which reads real
+  availability from the server.
+
+  Weekday offsets are the real ones — 1 Oct 2026 is a Thursday (4), 1 Nov 2026 a
+  Sunday (0) — so the grids line up with a real calendar rather than merely
+  looking like one.
+*/
+const SELECTED_RANGE = "18 Oct 2026 - 23 Oct 2026";
+
 const MONTHS = [
-  { label: "September 2026", cells: monthCells(2, 30) },
   { label: "October 2026", cells: monthCells(4, 31) },
+  { label: "November 2026", cells: monthCells(0, 30) },
 ];
 
 export function Calendar({ listing }: { listing: Listing }) {
@@ -38,7 +51,7 @@ export function Calendar({ listing }: { listing: Listing }) {
       <h2 className="text-xl font-medium text-fg">
         {listing.pricing.nights} nights in Candolim
       </h2>
-      <p className="pt-1 text-sm text-subtle">Add your travel dates for exact pricing</p>
+      <p className="pt-1 text-sm text-subtle">{SELECTED_RANGE}</p>
 
       <div className="pt-8" aria-hidden="true">
         <div className="flex items-start justify-between">

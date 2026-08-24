@@ -7,9 +7,17 @@
  * which are the strings most often left hardcoded and untranslated — is readable
  * in one place.
  *
- * AUTHORED. The reference's booking panel could not be opened for capture (see
- * the README's provenance note), so these are original strings written to fit the
- * flow. Structure and behaviour are cloned; this wording is ours.
+ * PROVENANCE, MIXED — and the split moved on 24 Aug.
+ *
+ * The strings the reference's COLLAPSED card renders are now captured, and
+ * `scripts/check-copy-verbatim.mjs` asserts them codepoint-for-codepoint against
+ * the live page: the field labels, "Reserve", "You won't be charged yet",
+ * "Clear dates", "Report this listing", and the "N guests" summary.
+ *
+ * The rest is still AUTHORED. The reference's date picker and guest popover never
+ * opened for capture — it renders a fixed, already-selected stay — so the wording
+ * inside those panels, and every error and empty state, is ours. Structure and
+ * behaviour are cloned; that wording is not transcribed and is not claimed to be.
  */
 export const BOOKING_COPY = {
   card: {
@@ -27,6 +35,11 @@ export const BOOKING_COPY = {
     totalLabel: "Total",
     clearDates: "Clear dates",
     close: "Close",
+    /**
+     * Sits under "You won't be charged yet". Inert here, as it is on the
+     * reference — there is no reporting flow to send it to.
+     */
+    reportListing: "Report this listing",
   },
 
   calendar: {

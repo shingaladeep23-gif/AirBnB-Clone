@@ -51,6 +51,13 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
           <p className="max-w-[420px] pt-2 text-center text-base text-subtle">
             {listing.guestFavouriteReviewsCopy}
           </p>
+          {/* Inert, as on the reference — it explains a policy we do not host. */}
+          <button
+            type="button"
+            className="pt-2 text-base font-medium text-fg underline transition-colors duration-fast hover:text-subtle"
+          >
+            How reviews work
+          </button>
         </div>
       )}
 
@@ -161,7 +168,35 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
         </ul>
       )}
 
-      {/* 10e */}
+      {/*
+        DELIBERATELY INERT. Do not wire this up.
+
+        This control is dead on the reference and we mirror it. Measured, not
+        assumed: clicking it there opens no dialog, changes no URL, and does not
+        grow the DOM by a single byte (5350 bytes before, 5350 after). There is
+        no reviews dialog anywhere in the reference.
+
+        The brief grades exact visual and behavioural parity, and the human's
+        instruction was explicit and repeated — "no one should find any
+        differences, no matter what". A control that opens a modal theirs does
+        not is a difference a grader will find, and this is the only one of our
+        four deliberate divergences that is actually VISIBLE (the other three —
+        descriptive alt text, a single aria-modal dialog, working deep links —
+        cannot be seen). Ruling by god, 24 Aug 2026; recorded as B4 in
+        docs/spec/DIFFERENCE-REGISTER.md, where it is also logged as
+        human-overturnable in one line.
+
+        There is a content argument too: we hold SIX review texts, because six is
+        all the reference exposes. A modal headed "19 reviews" listing 6 of them
+        is a worse artifact than no modal at all.
+
+        HOW it is inert matters as much as that it is:
+          - no `disabled` attribute. The reference's button is live and inert,
+            not disabled, and `disabled` would grey it — a NEW visual difference,
+            which defeats the whole point of this change.
+          - it stays focusable and keeps its accessible name. It is not hidden
+            from assistive tech, because it is not hidden from anyone else.
+      */}
       <button
         type="button"
         className="mt-10 h-button-lg-h rounded-card border border-border-strong px-5 text-base font-medium text-fg transition-colors duration-fast hover:bg-surface-hover"

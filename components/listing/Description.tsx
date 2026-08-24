@@ -14,6 +14,25 @@ export function Description({ description }: { description: string }) {
 
   return (
     <section className="py-8">
+      {/*
+        The reference sits this above the description because the host wrote the
+        listing in another language and Airbnb machine-translated it. It is not
+        decoration — it is the provenance of the paragraph underneath, so it
+        stays with the paragraph rather than being dropped as chrome.
+
+        "Show original" is inert here, as it is there: we hold one version of the
+        text, and a toggle that shows the same words again would be a lie.
+      */}
+      <p className="pb-4 text-sm text-subtle">
+        Some info has been automatically translated.{" "}
+        <button
+          type="button"
+          className="font-medium text-fg underline transition-colors duration-fast hover:text-subtle"
+        >
+          Show original
+        </button>
+      </p>
+
       <p className="line-clamp-6 whitespace-pre-line text-base text-fg">
         {description}
       </p>

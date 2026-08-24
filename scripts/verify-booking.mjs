@@ -97,14 +97,27 @@ if (blockedInView) {
   );
 }
 
-// --- Select the range. The picker may need paging forward to reach the month.
-for (let i = 0; i < 12; i++) {
-  if ((await calendar.locator(`button[aria-label^="${checkIn}"]`).count()) > 0) break;
-  await calendar.getByRole("button", { name: "Show next month" }).click();
-  await page.waitForTimeout(250);
-}
+// --- Select the range. The picker shows two months at a time, so reaching a
+// --- given day may need paging forward.
+//
+// BOTH ends need this, not just check-in. A stay that straddles a month boundary
+// — 29 Sep to 1 Oct, say — puts the checkout in a month the picker is not
+// showing yet, and the seeded calendar moves every day, so which stay gets
+// chosen changes with the date. Paging only for check-in passed for weeks and
+// then failed on the first straddling stay.
+const pageTo = async (iso) => {
+  for (let i = 0; i < 12; i++) {
+    if ((await calendar.locator(`button[aria-label^="${iso}"]`).count()) > 0) return true;
+    await calendar.getByRole("button", { name: "Show next month" }).click();
+    await page.waitForTimeout(250);
+  }
+  return false;
+};
+
+check("the picker can reach the check-in month", await pageTo(checkIn), checkIn);
 await calendar.locator(`button[aria-label^="${checkIn}"]`).first().click();
 await page.waitForTimeout(300);
+check("the picker can reach the checkout month", await pageTo(checkOut), checkOut);
 await calendar.locator(`button[aria-label^="${checkOut}"]`).first().click();
 await page.waitForTimeout(1200);
 

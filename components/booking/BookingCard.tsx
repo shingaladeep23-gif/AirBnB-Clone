@@ -316,6 +316,20 @@ export function BookingCard({ listing, slug }: { listing: Listing; slug: string 
       </p>
 
       {/*
+        Inert, as it is on the reference. Rendered as a button rather than a link
+        so it is reachable and announced correctly without claiming a destination
+        that does not exist.
+      */}
+      <p className="pt-4 text-center">
+        <button
+          type="button"
+          className="text-sm text-subtle underline transition-colors duration-fast hover:text-fg"
+        >
+          {BOOKING_COPY.card.reportListing}
+        </button>
+      </p>
+
+      {/*
         role="status" so a quote arriving, or failing, is announced without
         stealing focus from the calendar the user is still working in.
       */}

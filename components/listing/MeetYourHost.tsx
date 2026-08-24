@@ -95,6 +95,15 @@ export function MeetYourHost({
           >
             Message host
           </button>
+
+          {/*
+            The payment-protection notice. Airbnb's own anti-fraud warning, and
+            the reference carries it verbatim under the message button.
+          */}
+          <p className="pt-6 text-sm text-subtle">
+            To help protect your payment, always use Airbnb to send money and
+            communicate with hosts.
+          </p>
         </div>
       </div>
     </section>
