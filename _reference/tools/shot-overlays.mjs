@@ -1,0 +1,15 @@
+import { chromium } from 'playwright';
+const b = await chromium.launch({ headless: true });
+const p = await b.newPage({ viewport: { width: 1910, height: 1000 } });
+const OUT = 'D:/PlayPower Assignment/_reference/qa/';
+await p.goto('http://localhost:3000/?modal=PHOTO_TOUR_SCROLLABLE', { waitUntil: 'networkidle', timeout: 60000 });
+await p.waitForTimeout(2500);
+await p.screenshot({ path: OUT + 'tour-top.png' });
+await p.evaluate(() => { const d=document.querySelector('[role="dialog"]'); if(d) d.scrollTop = 1400; });
+await p.waitForTimeout(1200);
+await p.screenshot({ path: OUT + 'tour-scrolled.png' });
+await p.goto('http://localhost:3000/?modal=PHOTO_TOUR_SCROLLABLE&photo=3', { waitUntil: 'networkidle', timeout: 60000 });
+await p.waitForTimeout(2500);
+await p.screenshot({ path: OUT + 'lightbox.png' });
+console.log('done');
+await b.close();
