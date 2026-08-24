@@ -210,7 +210,7 @@ export const listing: Listing = {
     name: "Mirashya Stays",
     avatar: "/assets/images/avatars/host.jpeg",
     isSuperhost: true,
-    hostingDuration: "4 years hosting",
+    hostingDuration: "2 years hosting",
     reviewCount: 218,
     rating: 4.92,
     responseRate: "100%",
