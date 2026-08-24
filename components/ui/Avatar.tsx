@@ -45,7 +45,11 @@ export function Avatar({
   return (
     <span
       aria-hidden="true"
-      className={`flex shrink-0 items-center justify-center rounded-pill bg-surface-sunken font-semibold text-fg ${letterClassName} ${className}`}
+      // font-medium, not font-semibold: the reference measures these initials at
+      // 17px weight 500, and `--font-weight-semibold` no longer exists — there is
+      // no 600 anywhere on the reference, so the rung was removed rather than
+      // left reachable. See tokens.css.
+      className={`flex shrink-0 items-center justify-center rounded-pill bg-surface-sunken font-medium text-fg ${letterClassName} ${className}`}
     >
       {name.slice(0, 1).toUpperCase()}
     </span>

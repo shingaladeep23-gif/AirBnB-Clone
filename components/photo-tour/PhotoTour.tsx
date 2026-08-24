@@ -35,16 +35,25 @@ export interface PhotoTourProps {
  * grouping consecutive photos by `room` yields the tour sections with no sorting —
  * and no risk of inventing an order nobody measured.
  *
- * LAYOUT RULE: the 6 wide photos (1440x808, 16:9) are full-width rows; the 37 at
- * 4:3 pair two-across. Aspect ratio tracks the CAMERA, not the room — the wide
- * six are all drone exteriors and all sit in the final "Building and surroundings"
- * group, so the full-width rows form one contiguous run at the end rather than
- * being distributed as group openers. Rows are computed per group, so this falls
- * out naturally instead of being special-cased.
+ * LAYOUT RULE — MEASURED, NOT INFERRED. Each section lays out as a repeating
+ * cycle of [one full-width lead, then a pair two-across], with one exception:
+ * when exactly two photos remain at a cycle boundary they render as a pair rather
+ * than as a lead plus an orphan.
+ *
+ * That rule was checked against every section of the captured tour and reproduces
+ * all nine exactly (Lpp, LppLppL, pp, LppLpp, L, Lpppp, LppLpp, Lpp, LppLppLppL).
+ * The two-remaining clause is what produces "Full kitchen" (pp, no lead) and the
+ * flat tail of "Gym" (Lpppp) — both would be wrong under a naive cycle.
+ *
+ * Slot size does NOT track the camera. An earlier version paired by aspect ratio,
+ * putting the six 16:9 drone photos in full-width rows and everything else in
+ * pairs; the reference instead crops every slot to 3:2 (lead 458x305.33, pair
+ * 223x148.66) and picks the slot by position alone. A 16:9 photo can sit in a
+ * pair and a 4:3 photo can lead.
  */
 
-/** A row is either one wide photo or a pair of 4:3 photos. */
-type Row = { kind: "wide"; photo: Indexed } | { kind: "pair"; photos: Indexed[] };
+/** A row is either one full-width lead photo or a pair two-across. */
+type Row = { kind: "lead"; photo: Indexed } | { kind: "pair"; photos: Indexed[] };
 type Indexed = { photo: ListingPhoto; index: number };
 type RoomGroup = { room: string; rows: Row[] };
 
@@ -66,39 +75,37 @@ export function groupPhotosByRoom(photos: ListingPhoto[]): RoomGroup[] {
   return groups.map((g) => ({ room: g.room, rows: buildRows(g.photos) }));
 }
 
-/** Wide photos are 16:9-ish; everything else is 4:3 and pairs up. */
-function isWide(photo: ListingPhoto): boolean {
-  return photo.width / photo.height > 1.5;
-}
-
-/** Lays a single room's photos into rows: wide ones solo, 4:3 ones in pairs. */
-function buildRows(items: Indexed[]): Row[] {
+/**
+ * Lays one section's photos into rows: a lead, then a pair, repeating.
+ *
+ * The `remaining === 2` clause is the whole subtlety. Without it a two-photo
+ * section renders as a lead plus a lone half-width orphan, and a five-photo
+ * section ends on one; the reference does neither.
+ *
+ * Re-verify with `npm run check:photos`, which replays this rule against the
+ * captured tour and fails if any section stops matching.
+ */
+export function buildRows(items: Indexed[]): Row[] {
   const rows: Row[] = [];
-  let pending: Indexed | null = null;
+  let i = 0;
 
-  items.forEach((item) => {
-    const { photo } = item;
+  while (i < items.length) {
+    const remaining = items.length - i;
 
-    if (isWide(photo)) {
-      // Flush a half-built pair first so document order is preserved.
-      if (pending) {
-        rows.push({ kind: "pair", photos: [pending] });
-        pending = null;
-      }
-      rows.push({ kind: "wide", photo: item });
-      return;
+    // Exactly two left: pair them instead of opening another cycle.
+    if (remaining !== 2) {
+      const lead = items[i];
+      if (!lead) break;
+      rows.push({ kind: "lead", photo: lead });
+      i += 1;
     }
 
-    if (pending) {
-      rows.push({ kind: "pair", photos: [pending, item] });
-      pending = null;
-    } else {
-      pending = item;
+    const pair = items.slice(i, i + 2);
+    if (pair.length > 0) {
+      rows.push({ kind: "pair", photos: pair });
+      i += pair.length;
     }
-  });
-
-  // A trailing unpaired 4:3 photo still gets its own row.
-  if (pending) rows.push({ kind: "pair", photos: [pending] });
+  }
 
   return rows;
 }
@@ -161,22 +168,22 @@ export function PhotoTour({
       </div>
 
       <div className="mx-auto w-full max-w-[712px] pb-20 pt-4">
-        <h2 className="pb-8 text-2xl font-semibold text-fg">Photo tour</h2>
+        <h2 className="pb-8 text-2xl font-medium text-fg">Photo tour</h2>
 
         <div className="flex flex-col gap-10">
           {groups.map((group) => (
             <section key={group.room} aria-label={group.room}>
-              <h3 className="pb-3 text-lg font-semibold text-fg">{group.room}</h3>
+              <h3 className="pb-3 text-lg font-medium text-fg">{group.room}</h3>
 
               <div className="flex flex-col gap-2">
                 {group.rows.map((row, i) =>
-                  row.kind === "wide" ? (
+                  row.kind === "lead" ? (
                     <TourPhoto
                       key={row.photo.photo.id}
                       item={row.photo}
                       onSelect={onPhotoSelect}
                       total={listing.photos.length}
-                      className="aspect-16/9"
+                      className="aspect-3/2"
                     />
                   ) : (
                     <div key={`${group.room}-pair-${i}`} className="flex gap-2">
@@ -186,7 +193,7 @@ export function PhotoTour({
                           item={item}
                           onSelect={onPhotoSelect}
                           total={listing.photos.length}
-                          className="aspect-4/3 flex-1"
+                          className="aspect-3/2 flex-1"
                         />
                       ))}
                     </div>

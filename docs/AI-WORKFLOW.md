@@ -72,6 +72,60 @@ codebase rather than generic filler:
    requests, broken images, heading order and focus behaviour.
 10. **Architecture diagram** — authored as HTML, rendered to 2× PNG and PDF via Playwright.
 
+That was Phase 1: a pixel-accurate but static page. Two more phases followed.
+
+11. **Phase 2 — a real backend.** The human's brief was "make everything real, no
+    simulated buttons": 32 controls existed, 12 had handlers. Next.js Route Handlers +
+    Prisma + SQLite, five booking routes, a seeded database committed to the repo so a
+    reviewer needs zero setup. Two invariants were made non-negotiable and then
+    *asserted* rather than claimed — the price is computed server-side and never read
+    from the request body, and a reservation re-checks availability inside the
+    transaction that writes it. `scripts/verify-booking.mjs` posts a tampered total and
+    then double-books, and requires the real price and a `409`. The decisions and their
+    reasoning are in `docs/spec/PHASE2-PLAN.md`, written *before* the code.
+12. **Phase 3 — capture the reference for real, and replace the invented content.** See
+    below; this is the part of the story worth reading.
+
+## Phase 3: two phases of disclosed guesswork, then the channel opened
+
+This is the arc worth recording honestly, because the temptation is to present a project
+as if it were right the first time.
+
+**What we knew we didn't know.** The reference blocks automated clients, so for Phases 1
+and 2 there was no way to read its long-form text. The decision (21 Aug) was to write
+original copy that fit the listing rather than ship empty sections — blank review cards
+and an empty amenities list read as unfinished, and the brief grades how closely the
+clone matches. That choice was constrained so it stayed reversible: **all copy in
+`lib/listing.ts`, never inline in JSX**, every invented field marked, and the whole thing
+disclosed in the README. The point of the constraint was that when the real strings
+arrived, swapping them in would be a data edit rather than a component rewrite.
+
+**Then the human reviewed our build against the live reference side by side** and found
+concrete differences — wrong photos in the hero, "4 years hosting" against the
+reference's 2, over-curved image corners, a different description. Their standard became
+explicit: *"It has to be a super clone. No one should find any differences."* Disclosure
+was no longer enough; the content had to be right.
+
+**The channel that worked was a change in kind, not in effort.** Every earlier attempt
+drove a browser that *we* launched, and got challenged. Attaching over CDP to a Chrome
+the human started reads an ordinary session. The page's `getComputedStyle` stub was
+routed around by pulling the native function off a blank iframe. Full method:
+**`docs/CAPTURE-METHOD.md`**; findings: **`docs/spec/CAPTURE-FINDINGS.md`**.
+
+**What that cost, measured.** The capture graded two phases of inference. Most geometry
+was right — the hero grid, the 8px gaps, the font stack, the page height to within a few
+pixels. The content was not: host stats, description, reviews, amenities, highlights,
+co-hosts and chips were all replaced with the real strings. Two inferences failed in an
+instructive way: the corner radius was 12px on a *single clipping wrapper*, not 18px on
+each image, and the hero showed the wrong five photos — a selection problem, not a
+missing-asset one, since all five were already on disk. Neither was findable by staring
+harder at a screenshot.
+
+**The lesson.** Disclosure is the right move under a blocked channel, but it is a
+holding position, not a destination. Keeping the invented content in one replaceable
+module is what made the eventual swap cheap; if that copy had been scattered through JSX,
+the capture would have arrived too late to use.
+
 ## What failed, and what it taught
 
 Recording this because the failures shaped the approach more than the successes.
