@@ -50,27 +50,29 @@ The photo tour is **URL-driven** (`?modal=PHOTO_TOUR_SCROLLABLE`), matching the 
 so it is deep-linkable and responds correctly to browser back/forward rather than being
 purely local component state (`lib/overlay.ts`).
 
-**Verified, not asserted — and only where it reproduces.** Parity here is measured, not
-eyeballed: the project carries its own harnesses, and `npm run verify` runs typecheck,
-lint, the production build and the design-token guard in one command.
+**Verified, not asserted.** Parity here is measured, not eyeballed. `npm run verify`
+chains typecheck, lint, the production build, the design-token guard and the copy gate;
+two browser harnesses cover the rest:
 
-Two deliberate omissions from this README, because a number you cannot reproduce on
-demand is worse than no number:
+| Gate | What it holds |
+|---|---|
+| `check:tokens` | No hardcoded colour, size or radius escapes `tokens.css` |
+| `check:copy` | Every string the capture recorded appears in our render, codepoint for codepoint — **113 of 121**, with the 8 absentees filed as A27–A33 |
+| `check:photos` | The photo manifest still matches the captured tour, in order. The gallery was the first defect the human noticed, and it is the kind that rots silently — a re-sort breaks nothing and just shows different pictures |
+| `check:dates` | Boundary assertions on the calendar. A fixture computed from *today* does not test a boundary until the boundary happens to be crossed; this pins them |
+| `behaviour.mjs` | **20 assertions** — URL-driven open, cold deep-link, scroll lock and release, focus move-in, focus trap across 40 consecutive tabs, focus return to the trigger, arrow clamping, Escape, console errors |
+| `verify-booking.mjs` | The two backend invariants, described below |
 
-- **Geometry deltas and total document height are being re-measured.** The figures
-  previously quoted here were taken before the reference content was captured
-  (24 Aug 2026) and the page's text was replaced wholesale. Text changes change height.
-  Run `node _reference/tools/compare.mjs http://localhost:3000` against a production
-  build for current per-element deltas and `docHeight`.
-- **The behaviour suite is 20 assertions**, covering URL-driven open, deep-linking,
-  scroll lock and release, focus move-in, focus trap across 40 consecutive tabs, focus
-  return to the trigger, arrow clamping and console errors. It currently stalls at the
-  deep-link step on a Playwright `networkidle` wait — a harness quirk, not an app defect:
-  the page settles at 66 requests with no growth over 8 seconds and no outstanding API
-  calls. **No pass count is claimed here until that step runs clean.**
+**Where we still differ from the reference, the number is written down rather than rounded
+off.** Per-element geometry deltas and the page-height difference are enumerated in
+`docs/spec/DIFFERENCE-REGISTER.md` — 18 closed, 13 open at the time of writing — and
+reproduced with `node _reference/tools/compare.mjs http://localhost:3000` against a running
+production build.
 
-The backend's two invariants are written as executable assertions rather than prose —
-`scripts/verify-booking.mjs`, described in the backend section.
+One caution carried over from that register: `compare.mjs` had been quoting a stale `6259`
+for the reference's page height, a screenshot-era estimate predating the CDP capture. It is
+corrected to the measured **6266**. A comparison tool with a stale target reports confident
+nonsense, which is worse than reporting nothing.
 
 ### The backend
 
@@ -116,10 +118,19 @@ database rather than in a transaction.
 
 ### Content provenance — please read this
 
-**Every text field on this page is now measured from the live reference.** How it was
-measured — and why that took three attempts and a change of approach — is in
-`docs/CAPTURE-METHOD.md`; the verbatim content it produced is in
-`docs/spec/CAPTURE-FINDINGS.md`.
+**The page's text is transcribed from the live reference, and how closely is a number we
+check on every build: 113 of the 121 strings the capture recorded appear in our render
+codepoint for codepoint.** The other 8 are strings we do not render yet, filed as A27–A33
+in `docs/spec/DIFFERENCE-REGISTER.md`. How the capture was done — and why it took three
+attempts and a change of approach — is in `docs/CAPTURE-METHOD.md`; the content it
+produced is in `docs/spec/CAPTURE-FINDINGS.md`.
+
+That count is asserted by `scripts/check-copy-verbatim.mjs`, wired into `npm run verify`.
+It renders the page in a real browser and compares text node against captured string
+without collapsing whitespace — because two of the differences it caught were invisible to
+proofreading: the reference writes "Where you'll sleep" with a **straight** apostrophe and
+"Where you'll be" with a **curly** one, and its house rules use a U+2009 thin space before
+"pm". Matching the reference there meant reproducing its own inconsistency.
 
 | | |
 |---|---|
@@ -137,27 +148,39 @@ constraint that made it safe was keeping **all copy in `lib/listing.ts`, never i
 JSX** — so when the capture finally worked, replacing the content was a data edit rather
 than a component rewrite.
 
-The capture graded that guesswork, and it is fair to say what it cost. Most geometry was
-right; most content was not. Host stats, description, reviews, amenities, highlights,
-co-hosts, review-topic chips, things-to-know and the neighbourhood copy were all wrong and
-have been replaced with the reference's own strings — including its typography quirks
-("the host nitish" lowercase, the doubled "Great great"), which are transcribed exactly.
+The capture graded that guesswork, and it is fair to say what it cost — in both
+directions. Layout *positions* were largely right; layout *values* and content were not.
+Host stats, description, reviews, amenities, highlights, co-hosts, review-topic chips and
+things-to-know were all wrong and now carry the reference's own strings, including its
+typography quirks ("the host nitish" lowercase, the doubled "Great great"), transcribed
+exactly. It also exposed a cluster of type and spacing defects that had gone unnoticed
+because nothing was checking them — 18 of them, since closed, plus 13 still open. All of
+it is enumerated as Class A in `docs/spec/DIFFERENCE-REGISTER.md`.
 
-Four things remain deliberate divergences rather than gaps. Each is recorded with its
-justification as B1–B4 in `docs/spec/DIFFERENCE-REGISTER.md`:
+Six things are **deliberate divergences** rather than gaps, each recorded with its
+justification as B1–B6 in that register:
 
-- **Alt text.** The reference ships `alt=""` on every image; we ship descriptive
+- **B1 · Alt text.** The reference ships `alt=""` on every image; we ship descriptive
   room-aware alt text.
-- **One `aria-modal` dialog**, against the reference's three simultaneous ones — two of
-  which are empty positioning shells.
-- **Deep links that work.** The reference writes `?modal=…&modalItem=N` to the URL but
-  renders nothing when that URL is loaded cold. Ours restores the overlay, and the
+- **B2 · One `aria-modal` dialog**, against the reference's three simultaneous ones — two
+  of which are empty positioning shells — with layers beneath it made `inert`.
+- **B3 · Deep links that work.** The reference writes `?modal=…&modalItem=N` to the URL
+  but renders nothing when that URL is loaded cold. Ours restores the overlay, and the
   behavioural suite asserts it.
-- **"Show all 19 reviews" stays live.** On the reference it is inert: the DOM measures
-  5350 bytes before and after the click, with no dialog and no URL change.
+- **B4, B5 · Three controls that are inert *on purpose*, because they are inert on the
+  reference** — "Show all 19 reviews", "Report this listing", "How reviews work". They
+  render, stay focusable, keep their accessible names, and do nothing. No `disabled`
+  attribute: that would grey them and create a new visual difference.
+- **B6 · The inline calendar is presentational** (`aria-hidden`), reproducing the
+  reference's fixed 18–23 Oct selection. The date picker in the booking card is live
+  against the API. Driving both from availability would make the page disagree with the
+  reference on every date but one.
 
-The first three are accessibility or usability defects in the reference. Visual parity is
-the goal; reproducing a bug is not, and the brief grades accessibility on its own terms.
+B1–B3 decline to reproduce accessibility defects, which the brief grades on its own terms.
+B4–B6 go the other way and mirror the reference exactly, on the human's standard: *"No one
+should find any differences."* A control that opens a dialog theirs does not is a
+difference a reviewer will find — and we hold six review texts, because six is all the
+reference exposes, so a modal headed "19 reviews" listing 6 would be the worse artifact.
 
 Separately, and not a divergence: **the images are the reference's own, always.** Every
 listing photo, avatar, review-topic chip and nearby-stay image was captured to
@@ -236,17 +259,29 @@ which is the only channel that reads the page (`docs/CAPTURE-METHOD.md`):
 | `cdp-modals.mjs` | The amenities dialog and the photo-tour overlay |
 | `cdp-probe.mjs` | One-off follow-up measurements |
 
-**And the backend invariants** (`scripts/`): `verify-booking.mjs` posts a tampered price
-and then double-books; `verify-geometry.mjs` and `verify-overlays.mjs` cover layout and
-overlay state.
+**Wired into the build** (`scripts/`, run by `npm run verify`): `check-tokens.mjs`,
+`check-photo-order.mjs`, `check-copy-verbatim.mjs` and `check-dates.ts`. Alongside them,
+`verify-booking.mjs` posts a tampered price and then double-books, and
+`verify-geometry.mjs` / `verify-overlays.mjs` cover layout and overlay state.
 
 ```bash
-npm run verify                                      # typecheck + lint + build + tokens
+npm run verify                                      # typecheck, lint, build + 4 gates
 npm run build && npm start                          # serve a production build
 node _reference/tools/compare.mjs http://localhost:3000
 node _reference/tools/behaviour.mjs http://localhost:3000
 node scripts/verify-booking.mjs http://localhost:3000
 ```
+
+Two notes on `check-copy-verbatim.mjs`, because both were mistakes made on the way and
+both are the kind that read as coverage while asserting nothing:
+
+- **It compares rendered text to rendered text.** Reading string literals out of
+  `lib/listing.ts` means re-implementing JavaScript's escape semantics — which is the exact
+  layer the bug hides in. Scraping the served HTML fails differently: the page streams its
+  content as an RSC flight payload inside `<script>` tags, so every string is found only in
+  escaped, chunk-split form, reporting 127/129 missing.
+- **It never collapses `\s`.** U+2009 and U+00A0 both match `\s` in JavaScript, so a tidy
+  `.replace(/\s+/g, " ")` on either side would silently delete the entire bug class.
 
 ### Design tokens
 
@@ -269,6 +304,7 @@ its stylesheet. No reference class names or minified CSS appear anywhere in this
 | Architecture diagram | `docs/architecture.png` (2×) and `docs/architecture.pdf` |
 | AI workflow / prompt sequence | `docs/AI-WORKFLOW.md` |
 | How the reference was measured | `docs/CAPTURE-METHOD.md` |
+| Every known difference, with its number | `docs/spec/DIFFERENCE-REGISTER.md` |
 | Measurement specs and capture findings | `docs/spec/` |
 | Backend build contract | `docs/spec/PHASE2-PLAN.md` |
 | Sub-agent configs | `.claude/agents/` |
@@ -312,6 +348,7 @@ reader can tell a measurement from an inference:
 
 | File | Covers | Tags |
 |---|---|---|
+| `DIFFERENCE-REGISTER.md` | Every difference a reviewer could notice, with its measured number | Class A (a delta, being fixed) / Class B (a divergence, on purpose) |
 | `CAPTURE-FINDINGS.md` | The 24 Aug CDP capture — verbatim content, real computed styles, room grouping, overlay structure | measured values; supersedes the two below where they disagree |
 | `REFERENCE-SPEC.md` | The top of the page, measured live | `EXACT` (`getBoundingClientRect()`) / `APPROX` (screenshot, ±5px) |
 | `BELOW-FOLD-SPEC.md` | Everything below the gallery, written before the page could be read | `EVIDENCE` / `CONVENTION` / `PENDING` |
@@ -329,29 +366,40 @@ are the evidence behind every content and geometry claim here.
 
 ## Known and accepted
 
-Things a reviewer may notice. We noticed them first, and each is either a decision or an
-openly-tracked gap — none is an oversight.
+**`docs/spec/DIFFERENCE-REGISTER.md` is the canonical list** — every difference a reviewer
+could notice, each carrying the measured number, split into deltas we are fixing (Class A)
+and divergences we are keeping (Class B, summarised under "Content provenance" above).
+That file exists because the human found differences in this build before we did, and the
+reason is worth stating plainly: our QA proved *behaviour* and *header geometry*, and
+nothing was checking whether the visible type and the visible content were right.
 
-- **Four of the 43 photos are byte-identical duplicates of another four.** 43 files,
-  39 unique images, md5-verified. We ship all 43 because the reference serves 43 distinct
+The headlines, current as of the register:
+
+- **18 Class A deltas closed, 13 open.** The closed set is mostly type and spacing — a
+  single unitless line height of 1.43, four missing type rungs, `font-semibold` at 48 call
+  sites where the reference only ever uses 400/500/700, the 652px left column, and the
+  gallery's 12px radius on one clipping wrapper rather than 18px per image. The open set
+  is mostly content that is absent rather than wrong: a "Neighbourhood highlights"
+  subsection, a "1 / 2" pager on the nearby-stays rail, the translation notice, the second
+  calendar month.
+- **Page height is 6704px against the reference's 6266px** — +438. **This is expected and
+  must not be "fixed" on sight.** Our page legitimately holds more content than the old
+  target assumed: 8 rail cards instead of 6, 6 reviews instead of 5, 2 sleeping-arrangement
+  cards instead of 1. The real finding is the residual after subtracting the added content,
+  and that decomposition is still owed (A24).
+- **Four of the 43 photos are byte-identical duplicates of another four.** 43 files, 39
+  unique images, md5-verified. We ship all 43 because the reference serves 43 distinct
   asset URLs and the gallery counter must agree with it; the alt text differs within each
-  pair, so they are not redundant to a screen reader.
-- **The reference's photo tour lays out 52 image slots; we hold 43 files.** Recorded in
-  `docs/spec/CAPTURE-FINDINGS.md` with per-slot filenames and positions. Reconciling the
-  two — whether the reference repeats assets across sections or serves more than we
-  captured — is open, and is tracked rather than glossed.
-- **Alt text is a deliberate divergence.** Every `<img>` on the reference has `alt=""`.
-  We ship descriptive, room-aware alt text instead. Empty alt on content images is an
-  accessibility failure, the brief grades accessibility explicitly, and alt text is not
-  visible — so this costs nothing in visual parity and is the one place we knowingly
-  differ.
-- **We do not reproduce the reference's three simultaneous `aria-modal="true"` dialogs.**
-  The reference keeps all three in the DOM at all times, two of them empty positioning
-  shells. That is an accessibility defect; visual parity does not extend to copying one.
-- **Document-height and per-element deltas are pending re-measurement**, for the reason
-  given under "What's implemented". For reference, the captured page height is **6266px**
-  at 1910 × 1000, DPR 1 (`CAPTURE-FINDINGS.md`) — that number is the reference's, measured
-  24 Aug 2026; ours is not being quoted until it reproduces.
+  pair, so they are not redundant to a screen reader. (The reference's tour lays out 52
+  `<img>` slots — that is these 43 plus the 9 filmstrip thumbnails, not extra photos.)
+- **A whole class of captured numbers had to be disqualified as targets.** Airbnb Cereal
+  never loaded on the machine the reference was captured from, so every width set by
+  *glyphs* rather than by CSS is Segoe UI metrics. Our `h1` renders 602.23 wide against the
+  capture's 585.55 — and `"Segoe UI"` at the same size and weight reproduces 585.55 to the
+  hundredth of a pixel, on two independent strings. `getComputedStyle().fontFamily` returns
+  the *declared* stack, never the face actually used, which is why this hid for a full
+  pass. Boxes, heights, gaps, radii, colours and paddings are unaffected and remain
+  targets; content-sized widths are not. The register carries the rule and the workings.
 
 ---
 
@@ -368,10 +416,20 @@ Treated as a graded requirement, not an afterthought:
   on close.
 - Keyboard operation of the lightbox (←/→), ignored while focus is in a text field, with
   the arrows disabled at the first/last photo rather than wrapping.
-- `role="dialog"` + `aria-modal` on both overlays, and an `aria-live` photo counter.
+- `role="dialog"` + `aria-modal` on the overlay that is actually open, with the layers
+  beneath it made `inert`. A focus trap alone would not be enough: a trap does not stop
+  virtual-cursor or rotor navigation, and `inert` is what removes the background from the
+  accessibility tree. An `aria-live` photo counter.
 - Semantic landmarks, ordered headings, `alt` text on every content image (no duplicates,
   no missing), and `aria-label`s on icon-only controls — 0 unnamed buttons.
+- The presentational calendar is `aria-hidden`, so assistive tech is not offered two
+  calendars with conflicting dates on the same page.
 
 These are written as executable assertions in `_reference/tools/behaviour.mjs` and
-`scripts/verify-overlays.mjs`, not as intentions — see the caveat under "What's
-implemented" about the suite's current deep-link step.
+`scripts/verify-overlays.mjs`, not as intentions.
+
+Three of them are places we **deliberately do not match the reference** — descriptive alt
+text against its `alt=""`, one live `aria-modal` against its three, and deep links that
+actually restore state. Each is argued as B1–B3 in `docs/spec/DIFFERENCE-REGISTER.md`.
+They are invisible on screen, so they cost nothing on the parity rubric, and the brief
+grades accessibility on its own terms.

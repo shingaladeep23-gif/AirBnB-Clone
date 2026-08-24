@@ -126,6 +126,36 @@ holding position, not a destination. Keeping the invented content in one replace
 module is what made the eventual swap cheap; if that copy had been scattered through JSX,
 the capture would have arrived too late to use.
 
+## The QA lesson: green gates that assert nothing
+
+The sharper failure was not the invented content — that was disclosed and planned for. It
+is that **the human found real visual differences in a build whose QA was fully green**,
+and the reason generalises well beyond this project.
+
+Our harness proved *behaviour* (20 assertions) and *header geometry* (8 elements). Nothing
+was checking whether the visible type and the visible content were right. So a cluster of
+defects sat in plain sight through every passing run: `font-semibold` at 48 call sites
+where the reference only ever uses three weights, line heights ~2px tight on almost every
+rung, four type rungs missing from the scale entirely, and a gallery corner radius of 18px
+that had been *inferred* to fill a gap where the spec said "rounded outer corners" and
+never pinned a number. Every one of them is enumerated with its measured value in
+`docs/spec/DIFFERENCE-REGISTER.md`.
+
+Three habits came out of that, and they are the part worth reusing:
+
+1. **An unpinned number in a spec is a defect waiting to happen.** "Rounded corners" with
+   no value is not a specification; it is an invitation for somebody downstream to guess,
+   and the guess will be confident and wrong. Numbers or `PENDING` — never prose.
+2. **A gate that can skip is worse than no gate.** The copy checker's first version went
+   green whenever it could not reach a page — and it runs inside `npm run verify`, which
+   builds but never *starts* a server, so it would have skipped on every run while reading
+   as coverage. Exactly one condition may skip, and it is now explicit.
+3. **Measure the rendering, not the source.** Reading strings out of `lib/listing.ts`
+   means re-implementing JS escape semantics, which is the layer the bug hides in. Related:
+   `getComputedStyle().fontFamily` returns the *declared* stack, never the face the browser
+   actually used — which is how a full pass of width measurements got taken against Segoe
+   UI metrics on a machine where Cereal had never loaded.
+
 ## What failed, and what it taught
 
 Recording this because the failures shaped the approach more than the successes.

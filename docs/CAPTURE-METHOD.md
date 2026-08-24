@@ -110,3 +110,28 @@ specific about the cost of the inferences:
 
 None of that was findable by looking harder at screenshots. It needed the page
 to be read.
+
+## One limitation of this method, and it disqualifies a class of numbers
+
+**Airbnb Cereal never loaded on the machine the capture was taken from.** The
+reference's font stack falls through to `system-ui`, so every width in the
+captured JSON that is set by *glyphs* rather than by CSS is Segoe UI metrics and
+must not be used as a parity target.
+
+The detection is worth knowing, because nothing reports this directly:
+`getComputedStyle().fontFamily` returns the **declared list**, never the face the
+browser actually resolved. The only way to catch it is to measure a string and
+compare it against candidate faces. Our `h1` renders 602.23 wide; the capture says
+585.55; `"Segoe UI"` at the same size and weight gives 585.55 exactly, and no
+Cereal weight or letter-spacing value reproduces it. Confirmed on a second string
+at a different size.
+
+| Still safe as targets | Disqualified |
+|---|---|
+| Layout boxes, the hero grid, gaps | Any width set by the element's own text |
+| **Every height** — line-heights and box heights are set explicitly | The `h1`, section headings, "Show all …" buttons, Share/Save, the review chips |
+| Colours, radii, weights, font sizes, line heights | |
+
+The rule that came out of it: **take the padding, the height, the radius and the
+position from the capture; derive the width from our own font.** The full
+workings are in `docs/spec/DIFFERENCE-REGISTER.md`.
