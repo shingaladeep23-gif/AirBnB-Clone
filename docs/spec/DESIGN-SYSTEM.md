@@ -204,16 +204,36 @@ shapes match ours is **UNKNOWN**; only sizes and positions were captured.
 The precise list to read off the live site. Short and honest beats long and
 confident — everything here is genuinely unknown, not merely unconfirmed.
 
-### Colour — the biggest gap
+Measured deltas against this build now live in [`DELTA-TYPOGRAPHY.md`](./DELTA-TYPOGRAPHY.md).
 
-1. **Every background colour on the page.** The capture recorded foreground
-   `color` but not `background-color`. We have no measured value for the page
-   background, the sunken `#f7f7f7` surfaces, hover states, or the border greys
-   in situ. All our `--color-surface-*` tokens are LOCAL.
-2. **The Reserve button's background.** We ship a three-stop gradient
-   (`#e61e4d → #e31c5f → #d70466`). Only its white text was measured. If the
-   reference uses a flat `#ff385c` this is visibly wrong on the single most
+### Colour
+
+> **Corrected 25 Aug.** An earlier version of this list claimed background colours
+> were not captured. **They were** — `capture-listing.json` carries
+> `backgroundColor` on every text node, with nine distinct values. The
+> corresponding rows are promoted to EXACT below. Only the items still listed here
+> are genuinely unknown.
+
+**Now EXACT** (measured, nine distinct values across 300 nodes):
+
+| Value | Where | Note |
+|---|---|---|
+| `rgba(0,0,0,0)` | 273 nodes | transparent is the default |
+| `rgb(255,255,255)` | 14 | surfaces, section CTA buttons |
+| **`rgb(242,242,242)`** | 5 | "Message host", calendar in-range — **we have no such token** |
+| `rgb(247,247,247)` | 2 | sunken surface — matches `--color-surface-sunken` |
+| `rgb(34,34,34)` | 2 | selected calendar dates |
+| `#f7ede2` · `#efeaf7` · `#fde7ef` · `#e7f0fd` | 1 each | avatar letter-tile backgrounds, per person |
+
+Still genuinely unknown:
+
+1. **The Reserve button's background.** We ship a three-stop gradient
+   (`#e61e4d → #e31c5f → #d70466`). Only its white text was measured — the button
+   element itself is not a text node, so the capture never recorded its fill. If
+   the reference uses a flat `#ff385c` this is visibly wrong on the single most
    important control.
+2. **The page and section background colours**, for the same reason: they belong
+   to container elements, not text nodes.
 3. **Link and focus-ring colours**, and whether underlines are `text-decoration`
    or a border.
 
