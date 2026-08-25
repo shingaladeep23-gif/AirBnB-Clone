@@ -1,5 +1,35 @@
 # Photo Tour room grouping — all 43 photos
 
+> ## ⚠️ SUPERSEDED — do not build from this file
+>
+> **Use [`photo-sections.md`](./photo-sections.md) instead.** On 24 Aug 2026 the
+> reference's own Photo Tour DOM was captured over CDP, and it replaces every
+> grouping decision below with measurement.
+>
+> The room names here were inferred from *what the photos depict*. The count
+> coincided at nine sections; almost nothing else did. The reference groups them
+> as Living room 1 · Living room 2 · Full kitchen · Bedroom · Full bathroom ·
+> Gym · Exterior · Pool · Additional photos.
+>
+> Three specific claims below are now known wrong:
+>
+> - **"Two distinct interiors, one of them a sibling unit."** The reference
+>   presents both as this listing, under *Living room 1* and *Living room 2*.
+>   The observation that they are different spaces was correct; the inference
+>   that one belongs to another apartment was not.
+> - **The no-singleton merge rule.** *Full bathroom* is a genuine one-photo
+>   section in the reference. `97c78f8a` should not have been merged.
+> - **"Wide photos form one contiguous run at the end."** They sit in *Exterior*,
+>   which is seventh of nine, and slot size ignores aspect ratio entirely.
+>
+> What still holds: the 43-file inventory, the four md5-verified duplicate pairs,
+> the 6-drone / 37-phone camera split, and the per-file descriptions of what is in
+> frame — those were observation, and observation survived. The grouping was
+> inference, and inference did not.
+>
+> Kept rather than deleted because the reasoning is a useful record of what could
+> be established before the capture channel existed.
+
 Jim (jim-mt2rp4pg), 21 Aug 2026. Companion to `photo-rooms.json`, which is the
 machine-readable mapping the Photo Tour should consume.
 
