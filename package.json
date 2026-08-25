@@ -12,6 +12,7 @@
     "check:tokens": "node scripts/check-tokens.mjs",
     "check:photos": "node scripts/check-photo-order.mjs",
     "check:copy": "node scripts/check-copy-verbatim.mjs",
+    "check:visual": "node scripts/check-visual.mjs",
     "check:dates": "tsx scripts/check-dates.ts",
     "verify": "npm run typecheck && npm run lint && npm run build && npm run check:tokens && npm run check:photos && npm run check:copy && npm run check:dates",
     "postinstall": "prisma generate",
