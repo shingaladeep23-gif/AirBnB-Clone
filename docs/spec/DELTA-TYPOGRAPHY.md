@@ -97,6 +97,25 @@ reference's family name resolves to nothing and silently falls back — which is
 precisely the false alarm this correction pass produced before the control run
 caught it. Anyone measuring us must probe `cereal`.
 
+#### Reuse the warmed CDP tab — a fresh tab is the wrong size
+
+Two independent reasons, both verified:
+
+| | `innerWidth × innerHeight` |
+|---|---|
+| The warmed reference tab | **1910 × 1000, DPR 1** — the canonical viewport |
+| A newly opened tab | **929 × 917** |
+
+A fresh tab to the *reference* also hangs on the bot challenge. But even against
+localhost it is half the width, and every width and x delta measured in one is
+meaningless. An abandoned earlier run of this sweep did exactly that and produced
+a cluster of −482px deltas across unrelated nodes — which is just
+`(1910 − 929) / 2`, the content column re-centring, not a defect in anything.
+
+So: find the existing tab, record its URL, navigate it back when finished, and
+never close it. Fresh tabs are safe only for localhost, and only if you set the
+viewport yourself.
+
 This also corrects `DESIGN-SYSTEM.md` §4, which said the font stack "matches what
 we ship". The *metrics* match; the declared string does not.
 
