@@ -136,19 +136,35 @@ export function Lightbox({
           onClick={goPrev}
           disabled={isFirst}
           aria-label="Previous photo"
-          // MEASURED 40x40 at x20,y480, border-radius 50%, white background,
-          // 1px border. `bg-surface` rather than `bg-surface-overlay`: both are
-          // white, but this is a control on the backdrop, not the backdrop.
-          //
-          // BORDER COLOUR IS DELIBERATELY ONE VALUE. The capture shows Previous
-          // at #ccc and Next at #222, but it was taken at modalItem=1000 — the
-          // FIRST photo — so that is equally consistent with "Previous is at its
-          // boundary" and with "one of them was hovered mid-capture". #222 is the
-          // only one of the two measured in a definitely-enabled state, so it is
-          // the base, and the existing disabled:opacity-30 carries the boundary
-          // state without asserting a colour rule nobody has verified.
-          // Re-measure at a middle index before encoding anything else.
-          className="absolute left-5 flex size-10 items-center justify-center rounded-pill border border-border-strong bg-surface text-fg transition-opacity duration-fast hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-30"
+          /*
+            RESTING AND DISABLED ARE BOTH MEASURED NOW — docs/spec/CDP-SESSION-2.md
+            section P3-J, read at photo 22 of 43 and again at photo 1. The earlier
+            note here said the #ccc border might have been a hover artefact and to
+            re-measure before encoding it; that has been done, and it is a genuine
+            disabled state. Two readings at different indices settle it, because a
+            hover artefact does not survive a keyboard-driven index change.
+
+              resting   40x40, radius 50%, bg #fff, border 1px #222, colour #222,
+                        opacity 1, cursor pointer. Previous x20, Next x1850, both
+                        y480 in a 1910x1000 viewport.
+              disabled  border-colour #ccc, opacity 0.28, cursor default.
+                        NOTHING ELSE MOVES — same box, same background, same radius.
+
+            x20 and 1910-1850-40 = 20 are symmetric 20px insets, so left-5/right-5.
+            y480 = (1000-40)/2, which `items-center` on the flex parent gives for
+            free: the parent's 88px vertical insets are equal, so centring inside
+            the padding box and centring inside the viewport are the same number.
+
+            `cursor-pointer` is explicit because Tailwind v4's preflight sets
+            buttons to `cursor: default` — without it the RESTING cursor is wrong
+            and, worse, resting and disabled become indistinguishable on the one
+            axis the reference uses to separate them.
+
+            `enabled:hover:` scopes the hover tint: "nothing else changes between
+            the two states" has to hold under the pointer too, and a bare `hover:`
+            still fires on a disabled button.
+          */
+          className="absolute left-5 flex size-10 cursor-pointer items-center justify-center rounded-pill border border-border-strong bg-surface text-fg transition duration-fast enabled:hover:bg-surface-hover disabled:cursor-default disabled:opacity-28"
         >
           <ChevronIcon size={14} />
         </button>
@@ -172,7 +188,12 @@ export function Lightbox({
           onClick={goNext}
           disabled={isLast}
           aria-label="Next photo"
-          className="absolute right-5 flex size-10 rotate-180 items-center justify-center rounded-pill border border-border-strong bg-surface text-fg transition-opacity duration-fast hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-30"
+          // Same measured box as Previous, mirrored — see the note there. Spelled
+          // out rather than hoisted into a shared constant on purpose:
+          // `check:tokens` only reads class lists out of a literal class
+          // attribute, so a hoisted string would quietly leave both arrows
+          // unguarded against the dead-utility bug that check exists to catch.
+          className="absolute right-5 flex size-10 rotate-180 cursor-pointer items-center justify-center rounded-pill border border-border-strong bg-surface text-fg transition duration-fast enabled:hover:bg-surface-hover disabled:cursor-default disabled:opacity-28"
         >
           <ChevronIcon size={14} />
         </button>

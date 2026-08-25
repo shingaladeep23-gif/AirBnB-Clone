@@ -59,6 +59,12 @@ for (const file of SRC_DIRS.flatMap((d) => findFiles(path.join(ROOT, d)))) {
 }
 
 const cssFiles = [];
+// Honour NEXT_DIST_DIR. Agents build into their own dist directory so concurrent
+// builds don't delete each other's output (see next.config.ts); this script read
+// `.next` unconditionally, so an isolated build either checked somebody else's
+// stale CSS or found none at all and exited 2 — both of which read as "your
+// classes are fine" when nothing had actually been checked.
+const DIST = process.env.NEXT_DIST_DIR || ".next";
 (function walk(dir) {
   if (!fs.existsSync(dir)) return;
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -66,10 +72,10 @@ const cssFiles = [];
     if (e.isDirectory()) walk(full);
     else if (e.name.endsWith(".css")) cssFiles.push(full);
   }
-})(path.join(ROOT, ".next"));
+})(path.join(ROOT, DIST));
 
 if (cssFiles.length === 0) {
-  console.error("No built CSS found under .next — run `npm run build` first.");
+  console.error(`No built CSS found under ${DIST} — run \`npm run build\` first.`);
   process.exit(2);
 }
 
