@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Airbnb Listing Clone — As-Built Architecture</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --ink:#12151a; --ink2:#3d4654; --line:#d7dce4; --bg:#fbfcfd;
+    --client:#2563eb; --client-bg:#eff5ff;
+    --edge:#7c3aed;   --edge-bg:#f5f0ff;
+    --svc:#0d9488;    --svc-bg:#effcfa;
+    --data:#d97706;   --data-bg:#fff8ec;
+    --plat:#64748b;   --plat-bg:#f4f6f9;
+    --hot:#e11d48;
+  }
+  body{
+    font: 14px/1.45 "Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+    color:var(--ink); background:#fff; width:1680px; padding:44px 48px 40px;
+  }
+  h1{ font-size:27px; letter-spacing:-.6px; font-weight:700; }
+  .sub{ color:var(--ink2); font-size:14px; margin-top:5px; }
+  .head{ display:flex; justify-content:space-between; align-items:flex-end;
+         border-bottom:2px solid var(--ink); padding-bottom:13px; margin-bottom:22px; }
+  .meta{ text-align:right; font-size:12px; color:var(--ink2); line-height:1.7; }
+  .canvas{ display:grid; grid-template-columns: 1fr 372px; gap:26px; align-items:start; }
+
+  .tier{ border:1px solid var(--line); border-radius:11px; padding:13px 15px 15px;
+         margin-bottom:13px; background:var(--bg); position:relative; }
+  .tier-h{ display:flex; align-items:center; gap:9px; margin-bottom:11px; }
+  .chip{ font-size:10.5px; font-weight:700; letter-spacing:.85px; text-transform:uppercase;
+         padding:3px 9px; border-radius:5px; color:#fff; }
+  .tier-note{ font-size:11.5px; color:var(--ink2); margin-left:auto; text-align:right; max-width:58%; }
+
+  .row{ display:grid; gap:10px; }
+  .c2{grid-template-columns:repeat(2,1fr)} .c3{grid-template-columns:repeat(3,1fr)}
+  .c4{grid-template-columns:repeat(4,1fr)} .c5{grid-template-columns:repeat(5,1fr)}
+  .c6{grid-template-columns:repeat(6,1fr)}
+
+  .box{ border:1.5px solid; border-radius:8px; padding:9px 11px; background:#fff; min-height:60px; }
+  .box b{ display:block; font-size:12.9px; font-weight:650; letter-spacing:-.1px; }
+  .box span{ display:block; font-size:11.2px; color:var(--ink2); margin-top:3px; line-height:1.36; }
+  .tag{ display:inline-block; font-size:9.5px; font-weight:700; letter-spacing:.4px;
+        color:var(--hot); border:1px solid var(--hot); border-radius:4px;
+        padding:0 4px; margin-top:5px; }
+  .tag.ok{ color:#0d9488; border-color:#0d9488; }
+  .tag.off{ color:#64748b; border-color:#94a3b8; }
+
+  .client .box{ border-color:#bfd4fb; background:var(--client-bg); }
+  .edge   .box{ border-color:#ddd0fb; background:var(--edge-bg); }
+  .svc    .box{ border-color:#b8e6df; background:var(--svc-bg); }
+  .data   .box{ border-color:#f2ddb4; background:var(--data-bg); }
+  .plat   .box{ border-color:#d5dbe4; background:var(--plat-bg); }
+  .hotbox{ border-color:var(--hot) !important; background:#fff1f4 !important; }
+  .dim{ opacity:.62; }
+
+  .bus{ border:1.5px dashed #0d9488; background:#effcfa; border-radius:8px;
+        padding:9px 13px; display:flex; align-items:center; gap:13px; }
+  .bus b{ font-size:12.9px; white-space:nowrap; }
+  .bus span{ font-size:11.2px; color:var(--ink2); }
+  .bus.warn{ border-color:#d97706; background:var(--data-bg); }
+
+  .flow{ text-align:center; color:#9aa4b2; font-size:15px; line-height:1; margin:-6px 0 7px; }
+
+  aside{ border:1px solid var(--line); border-radius:11px; padding:16px 17px; background:var(--bg); }
+  aside h2{ font-size:12.5px; text-transform:uppercase; letter-spacing:.9px;
+            border-bottom:1.5px solid var(--ink); padding-bottom:7px; margin-bottom:12px; }
+  .d{ margin-bottom:13px; padding-bottom:12px; border-bottom:1px solid #e6eaf0; }
+  .d:last-child{ border-bottom:0; margin-bottom:0; padding-bottom:0; }
+  .d b{ font-size:12.3px; display:block; margin-bottom:3px; }
+  .d p{ font-size:11.4px; color:var(--ink2); line-height:1.5; }
+  .d p em{ color:var(--hot); font-style:normal; font-weight:650; }
+  .d code{ font-size:10.8px; background:#eef1f6; padding:0 3px; border-radius:3px; }
+  .scale{ display:flex; gap:7px; margin-top:13px; flex-wrap:wrap; }
+  .scale div{ flex:1; min-width:96px; border:1px solid var(--line); border-radius:7px;
+              padding:7px 8px; background:#fff; }
+  .scale strong{ display:block; font-size:15px; letter-spacing:-.4px; }
+  .scale span{ font-size:10.2px; color:var(--ink2); }
+  footer{ margin-top:20px; border-top:1px solid var(--line); padding-top:11px;
+          font-size:11px; color:var(--ink2); display:flex; justify-content:space-between; }
+  code{ font-family:"SF Mono",Consolas,monospace; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <h1>Airbnb Listing Clone — As-Built Architecture</h1>
+    <div class="sub">What was actually built, and how the reference was measured rather than copied · desktop-only, 1910 × 1000, DPR 1</div>
+  </div>
+  <div class="meta">
+    PlayPower Labs take-home · Sheet 2 of 2<br>
+    Deep Shingala · August 2026
+  </div>
+</div>
+
+<div class="canvas">
+<main>
+
+  <!-- VIEWS -->
+  <section class="tier client">
+    <div class="tier-h">
+      <span class="chip" style="background:var(--client)">Three graded views</span>
+      <span class="tier-note">One route. The two overlays are URL state, not component state — so they are deep-linkable and survive a reload, which is how the reference behaves.</span>
+    </div>
+    <div class="row c3">
+      <div class="box"><b>Listing Page</b><span><code>/</code> — header, hero gallery, booking card, 9 content sections. RSC-rendered.</span></div>
+      <div class="box"><b>Photo Tour</b><span><code>/?modal=PHOTO_TOUR_SCROLLABLE</code> — 9 sections, 43 photos, <code>[lead, pair]</code> repeating layout.</span></div>
+      <div class="box"><b>Lightbox</b><span><code>&amp;idx=n</code> — arrows, ←/→ keys, focus trap, two-level dismissal.</span></div>
+    </div>
+  </section>
+
+  <div class="flow">▼</div>
+
+  <!-- APP -->
+  <section class="tier edge">
+    <div class="tier-h">
+      <span class="chip" style="background:var(--edge)">Application — Next.js 16 App Router</span>
+      <span class="tier-note">React 19.1 · TypeScript 5.9 · Turbopack. Server Components by default; client boundaries only where interaction demands one.</span>
+    </div>
+    <div class="row c5">
+      <div class="box"><b>Server Components</b><span>Listing data resolved on the server. No client fetch for first paint.</span></div>
+      <div class="box"><b>Overlay router</b><span>Search params drive both overlays. Back button steps the stack.</span></div>
+      <div class="box"><b>Focus management</b><span>Trap on open, restore to the invoking control on close.</span></div>
+      <div class="box"><b>next/font/local</b><span>Airbnb Cereal VF — one variable file, weights 200–900.</span></div>
+      <div class="box"><b>next/image</b><span>73 captured assets, AVIF/WebP, explicit sizes to avoid CLS.</span></div>
+    </div>
+  </section>
+
+  <div class="flow">▼</div>
+
+  <!-- DESIGN SYSTEM -->
+  <section class="tier svc">
+    <div class="tier-h">
+      <span class="chip" style="background:var(--svc)">Design system — Tailwind v4 CSS-first</span>
+      <span class="tier-note">Every visual value is a token in <code>@theme</code>. A hardcoded hex fails <code>check:tokens</code> in CI, so the scale cannot silently drift.</span>
+    </div>
+    <div class="row c4">
+      <div class="box"><b>Type scale</b><span>Single 1.43 line-height ratio, measured across 292 nodes. 11 roles deliberately deviate.</span></div>
+      <div class="box"><b>Colour</b><span>14 backgrounds, 7 foregrounds, 8 border colours — all measured, none guessed.</span></div>
+      <div class="box"><b>Elevation &amp; radius</b><span>5 shadows, 11 radii, read from the reference's computed styles.</span></div>
+      <div class="box"><b>Motion</b><span>Durations and easings tokenised; transitions match the reference's timings.</span></div>
+    </div>
+  </section>
+
+  <div class="flow">▼</div>
+
+  <!-- CAPTURE PIPELINE -->
+  <section class="tier data">
+    <div class="tier-h">
+      <span class="chip" style="background:var(--data)">Reference measurement pipeline</span>
+      <span class="tier-note">The reference actively defends itself. This tier exists because the obvious approaches all fail — and because the brief forbids lifting the code.</span>
+    </div>
+    <div class="row c4" style="margin-bottom:10px">
+      <div class="box hotbox"><b>CDP attach</b><span>Connect to a browser a human started. A Playwright-<i>launched</i> one is 429'd by BotID.</span><span class="tag">THE ONLY CHANNEL</span></div>
+      <div class="box hotbox"><b>Native getComputedStyle</b><span>The page stubs it to return an empty declaration. Recovered off a blank iframe's contentWindow.</span><span class="tag">DEFENCE BYPASSED</span></div>
+      <div class="box"><b>Geometry capture</b><span><code>getBoundingClientRect</code> on every node. Marked EXACT or APPROX — never unlabelled.</span></div>
+      <div class="box"><b>Asset capture</b><span>73 files / 11.71 MB, zipped in-page by the page's own JS and downloaded once.</span></div>
+    </div>
+    <div class="bus warn">
+      <b>Why not just copy?</b>
+      <span>The brief states a plagiarism-detection mechanism is in place and that lifting the codebase can mean disqualification. <code>getComputedStyle</code> being neutered means colours, spacing, type scale and timings <b>cannot</b> be scraped at all. The page is designed to be measured and rebuilt — so geometry and text anchor the layout, and every visual value is re-derived and written down with its confidence.</span>
+    </div>
+  </section>
+
+  <!-- QA -->
+  <section class="tier plat">
+    <div class="tier-h">
+      <span class="chip" style="background:var(--plat)">Verification — <code>npm run verify</code></span>
+      <span class="tier-note">Gates run in CI order. The last one exists because all the others compare numbers, and numbers were passing while the human could see differences.</span>
+    </div>
+    <div class="row c6">
+      <div class="box"><b>tsc + lint</b><span>Zero errors enforced.</span></div>
+      <div class="box"><b>check:tokens</b><span>Fails on any hardcoded visual value.</span></div>
+      <div class="box"><b>check:copy</b><span>Reads the RENDERED page, not the source module.</span></div>
+      <div class="box"><b>check:photos</b><span>43 photos, 9 sections, hero slot order.</span></div>
+      <div class="box"><b>verify-overlays</b><span>32 behavioural assertions — keyboard, focus, URL, counters.</span></div>
+      <div class="box hotbox"><b>check:visual</b><span>Pixel diff vs the reference at a locked viewport.</span><span class="tag">PIXELS, NOT NUMBERS</span></div>
+    </div>
+  </section>
+
+  <!-- BACKEND -->
+  <section class="tier data" style="margin-bottom:0">
+    <div class="tier-h">
+      <span class="chip" style="background:var(--data)">Backend — built, then paused by scope decision</span>
+      <span class="tier-note">Phase 2 made the controls real. Later de-scoped to concentrate the remaining time on visual parity, which is what the brief grades.</span>
+    </div>
+    <div class="row c5">
+      <div class="box dim"><b>Route Handlers</b><span>5 booking routes.</span><span class="tag off">PAUSED</span></div>
+      <div class="box dim"><b>Prisma + SQLite</b><span>Seeded DB committed — zero reviewer setup.</span><span class="tag off">PAUSED</span></div>
+      <div class="box dim"><b>Server-side pricing</b><span>Total never read from the request body.</span><span class="tag off">PAUSED</span></div>
+      <div class="box dim"><b>Availability re-check</b><span>Inside the write transaction.</span><span class="tag off">PAUSED</span></div>
+      <div class="box dim"><b>verify-booking</b><span>Posts a tampered total, then double-books. Expects the real price and a 409.</span><span class="tag off">PAUSED</span></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- SIDEBAR -->
+<aside>
+  <h2>Decisions worth defending</h2>
+
+  <div class="d">
+    <b>1 · Overlays are URL state</b>
+    <p>Both overlays live in search params, not <code>useState</code>. That is what makes them deep-linkable, reload-safe and Back-navigable — <em>matching behaviour, not just appearance</em>. The brief grades behavioural parity explicitly.</p>
+  </div>
+
+  <div class="d">
+    <b>2 · Measure the rendering, never the source</b>
+    <p>The copy checker reads the rendered page. Reading strings out of <code>lib/listing.ts</code> would mean re-implementing JS escape semantics — <em>which is the exact layer the bug hides in</em>.</p>
+  </div>
+
+  <div class="d">
+    <b>3 · Numbers or PENDING, never prose</b>
+    <p>"Rounded corners" with no value is not a specification, it is an invitation to guess. One such gap produced an 18px radius where the reference uses <em>12px on a single clipping wrapper</em>.</p>
+  </div>
+
+  <div class="d">
+    <b>4 · A gate that can skip is worse than no gate</b>
+    <p>The copy checker's first version went green whenever it could not reach a page — inside a script that never starts a server. It would have read as coverage forever. Exactly one skip condition is now allowed, and it is explicit.</p>
+  </div>
+
+  <div class="d">
+    <b>5 · Fonts are unobservable</b>
+    <p><code>fontFamily</code> returns the <em>declared</em> stack, never the resolved face, and <code>document.fonts.check()</code> returns true for a font that never loaded. A whole pass of widths was taken against Segoe metrics before the tell was found: <em>height exact + width wrong = glyphs, not CSS</em>.</p>
+  </div>
+
+  <div class="d">
+    <b>6 · Disclosure is a holding position</b>
+    <p>While the channel was blocked, invented copy was isolated in one module and disclosed. That constraint is what later made replacing it with measured strings <em>a data edit rather than a rewrite</em>.</p>
+  </div>
+
+  <div class="d">
+    <b>7 · Shared state is not just files</b>
+    <p>Single-writer file ownership broke three times — on a shared <em>type</em>, a shared <em>.next</em> directory, and the shared <em>git index</em>. Whoever changes a shared thing owns every consumer of it in the same commit.</p>
+  </div>
+
+  <div class="scale">
+    <div><strong>3 views</strong><span>listing · tour · lightbox</span></div>
+    <div><strong>43 photos</strong><span>9 tour sections</span></div>
+    <div><strong>32</strong><span>behavioural assertions</span></div>
+  </div>
+</aside>
+</div>
+
+<footer>
+  <span>Red outline marks a defence that had to be defeated, or the one gate that compares pixels · grey marks de-scoped work</span>
+  <span>Sheet 2 — as-built · see Sheet 1 for the production scaling architecture</span>
+</footer>
+
+</body>
+</html>
