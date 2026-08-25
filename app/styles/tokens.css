@@ -226,6 +226,13 @@
                           similar-listing photos, and the two "Show all …"
                           buttons (amenities, reviews) */
   --radius-lg: 16px; /* MEASURED — the review-topic chips, and only those */
+  /* The reference paints ELEVEN distinct radii. We tokenise the four with known
+     call sites; the other seven are recorded here so nobody re-infers them:
+       0px · 2px · 4px · 20px · 40px · 50% · and the asymmetric `0px 0px 8px`.
+     They are deliberately NOT tokens yet — this file's rule is that a token
+     needs a call site, and adding five unused ones is how the 18px radius got
+     in. When a component needs one, take the value from here rather than
+     guessing, and add the token then. */
   --radius-pill: 999px; /* MEASURED — Reserve, avatars, icon buttons, the header
                            search segments */
   /* REMOVED --radius-xs (4px) and --radius-sm (6px): INFERRED, zero call sites.
