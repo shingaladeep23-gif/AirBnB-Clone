@@ -63,7 +63,8 @@ if (bad.length) { console.error('REFUSING — excluded dirs present:', bad); pro
 // pasted somewhere nobody thought to look.
 const SECRET_NAMES = [/^\.env($|\.)/i, /^\.vercel$/i, /\.local\.json$/i, /\.pem$/i, /\.key$/i, /^id_rsa/i];
 const SECRET_CONTENT = [
-  /VERCEL_OIDC_TOKEN/,
+  // Split so this scanner does not match its own source when it walks the stage.
+  new RegExp('VERCEL_' + 'OIDC_' + 'TOKEN'),
   /\bgh[pousr]_[A-Za-z0-9]{16,}/,      // GitHub tokens
   /\bsk-[A-Za-z0-9]{20,}/,             // OpenAI-style keys
   /\bsk-ant-[A-Za-z0-9-]{20,}/,        // Anthropic keys
