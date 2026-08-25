@@ -150,6 +150,10 @@ export function Lightbox({
               disabled  border-colour #ccc, opacity 0.28, cursor default.
                         NOTHING ELSE MOVES — same box, same background, same radius.
 
+            `border-border-mid` is #cccccc — landed in the surfaces commit as part
+            of the measured border vocabulary, which is why this is a token and not
+            an arbitrary value.
+
             x20 and 1910-1850-40 = 20 are symmetric 20px insets, so left-5/right-5.
             y480 = (1000-40)/2, which `items-center` on the flex parent gives for
             free: the parent's 88px vertical insets are equal, so centring inside
@@ -164,7 +168,7 @@ export function Lightbox({
             the two states" has to hold under the pointer too, and a bare `hover:`
             still fires on a disabled button.
           */
-          className="absolute left-5 flex size-10 cursor-pointer items-center justify-center rounded-pill border border-border-strong bg-surface text-fg transition duration-fast enabled:hover:bg-surface-hover disabled:cursor-default disabled:opacity-28"
+          className="absolute left-5 flex size-10 cursor-pointer items-center justify-center rounded-pill border border-border-strong bg-surface text-fg transition duration-fast enabled:hover:bg-surface-hover disabled:cursor-default disabled:border-border-mid disabled:opacity-28"
         >
           <ChevronIcon size={14} />
         </button>
@@ -193,7 +197,7 @@ export function Lightbox({
           // `check:tokens` only reads class lists out of a literal class
           // attribute, so a hoisted string would quietly leave both arrows
           // unguarded against the dead-utility bug that check exists to catch.
-          className="absolute right-5 flex size-10 rotate-180 cursor-pointer items-center justify-center rounded-pill border border-border-strong bg-surface text-fg transition duration-fast enabled:hover:bg-surface-hover disabled:cursor-default disabled:opacity-28"
+          className="absolute right-5 flex size-10 rotate-180 cursor-pointer items-center justify-center rounded-pill border border-border-strong bg-surface text-fg transition duration-fast enabled:hover:bg-surface-hover disabled:cursor-default disabled:border-border-mid disabled:opacity-28"
         >
           <ChevronIcon size={14} />
         </button>
