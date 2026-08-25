@@ -5,9 +5,10 @@ nothing was fixed in this pass.
 
 | | |
 |---|---|
-| Reference | `_reference/spec/captured/capture-listing.json` (24 Aug 2026, CDP, 1910 × 1000 DPR 1) |
+| Reference — type, colour, spacing | `_reference/spec/captured/capture-listing.json` (24 Aug 2026, CDP, 1910 × 1000 DPR 1) |
+| Reference — **widths** | re-measured live over CDP, 25 Aug, with Cereal confirmed resolving |
 | Ours | commit `54eaafb`, `npm run build`, served on **:3121** (own port, waited on `BUILD_ID`) |
-| Font check | `document.fonts.check('16px "Airbnb Cereal VF"')` → **true**, and `document.fonts.ready` awaited before reading |
+| Font check | both sides probed at 22px on the same string → **448.30 each**. Note our family is `cereal`, not `"Airbnb Cereal VF"` — probe the right name or you measure a fallback |
 
 ## Accounting — the numbers add up
 
@@ -24,7 +25,7 @@ Of the 249 matched:
 |---|---:|
 | At least one **intrinsic** delta (type, colour, background, padding) | **131** |
 | **Only** positional deltas (x / y / height) — cascading, see below | **117** |
-| Only a width delta, which is CONTAMINATED and disregarded | **1** |
+| Only a width delta | **1** |
 | No delta on any compared property | **0** |
 | **Total** | **249** ✓ |
 
@@ -57,13 +58,68 @@ Fix the intrinsic list and re-run before treating any positional delta as real.
 Ranking them alongside type errors would be actively misleading, so they are
 excluded from the ranking and reported as a count.
 
-### Width is disqualified — 135 deltas excluded
+### Widths — re-measured live, and now valid
 
-Airbnb Cereal VF never loaded during the capture, so every text *width* in
-`capture-listing.json` is Segoe UI's metrics. **135 width deltas were computed and
-are marked CONTAMINATED and excluded** from both the ranking and the summary.
-Sizes, weights, line-heights, colours, letter-spacing and box positions are
-unaffected by the substitution and are what this sweep compares.
+> **Superseded 25 Aug.** The first version of this sweep excluded 135 width deltas
+> as CONTAMINATED, because Cereal had not loaded in the capture session and every
+> reference width was Segoe UI's. That exclusion was right for that data, but the
+> data has been replaced: the reference **does** serve and resolve Cereal, so
+> widths were re-measured over the live CDP channel and the section below is the
+> valid result. The `capture-listing.json` widths remain void — do not use them.
+
+**Every row in the full table below rests on a face-independent property** —
+font-size, font-weight, line-height, colour, background-colour, letter-spacing
+and padding are CSS values that do not change with the resolved face. All 222 of
+them are marked **KEEP**; none needed re-measurement. That is why the 1.43 ratio
+finding survived the correction intact.
+
+Re-measurement, both sides confirmed on the correct face before reading:
+
+| Side | Probe at 22px on the same string |
+|---|---|
+| Reference | declared stack **448.30** = `"Airbnb Cereal VF"` alone **448.30**, vs Segoe 428.45 → Cereal resolving |
+| Ours | family `cereal` at weight 400 → **448.30** |
+
+**The two faces are metrically identical.** Our h1 width matches the reference's
+exactly — it produced no delta row at all.
+
+#### But our declared font stack is not the reference's string
+
+| | Declared `font-family` |
+|---|---|
+| Reference | `"Airbnb Cereal VF", Circular, -apple-system, BlinkMacSystemFont, "system-ui", Roboto, "Helvetica Neue", sans-serif` |
+| Ours | `cereal, "cereal Fallback", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", …` |
+
+`next/font/local` names the family after the CSS variable, so our page defines
+`cereal`, not `"Airbnb Cereal VF"`. **Rendering is identical**; the difference is
+the stack string. It matters for exactly one reason: probing our page by the
+reference's family name resolves to nothing and silently falls back — which is
+precisely the false alarm this correction pass produced before the control run
+caught it. Anyone measuring us must probe `cereal`.
+
+This also corrects `DESIGN-SYSTEM.md` §4, which said the font stack "matches what
+we ship". The *metrics* match; the declared string does not.
+
+#### The 104 width deltas, split by cause
+
+| | Count | Verdict |
+|---|---:|---|
+| Width delta that follows a font-size delta already listed above | **53** | **DROP** — derived, fixing the size fixes the width |
+| Width delta independent of font-size | **51** | **KEEP** — real, tabled below |
+| **Total** | **104** | |
+
+The 51 are mostly **container and layout** widths rather than glyph metrics, since
+the sweep measures each element's box. The clearest clusters:
+
+- **Header search segments too narrow** — "Anywhere" −82px, "Anytime" −32px,
+  "Add guests" −30.73px. Same root cause as the dropped `0px 16px` padding.
+- **Rating histogram digit rows** — reference ~8px (the digit alone), ours 56–105px
+  (the digit element stretched across the row). A structural difference, not type.
+- **"Some info has been automatically translated."** +271.95px — ours spans the
+  full 652px column, the reference's is 380.05px content-width.
+- **Sleeping-arrangement cards** — "1 double bed" / "1 sofa" both 318 → 284, −34px.
+- **Host stat cells** — "Reviews" / "Rating" / "Years hosting" all 79 → 60, −19px.
+- **"Learn more" ×3** +14px, **"Claim"** −12px, **"4.95"** +12px — button widths.
 
 ---
 
@@ -123,16 +179,79 @@ letter-spacing      1
 intrinsic subtotal        222   (line-height + font-size + color + padding
                                  + background-color + font-weight + letter-spacing)
 positional subtotal       625
-width             135   CONTAMINATED — excluded from both subtotals
+width              51   KEEP (re-measured live, independent of font-size)
+width (derived)    53   DROP (follows a font-size delta already counted)
 ```
 
 **Nodes with at least one intrinsic delta: 131 of 249 matched (53%).**
 
 ---
 
+## Width deltas — the 51 that are real
+
+Re-measured 25 Aug over the live CDP channel with Cereal confirmed on both sides.
+Element box widths, so these are layout/container deltas as much as text ones.
+
+| # | Node | Reference w | Our w | Delta |
+|---:|---|---:|---:|---:|
+| 1 | `Some info has been automatically translated.` | 380.05 | 652 | +271.95px |
+| 2 | `2` | 7.91 | 105.66 | +97.75px |
+| 3 | `Anywhere` | 149.31 | 67.31 | -82px |
+| 4 | `4` | 8.17 | 84.72 | +76.55px |
+| 5 | `8` | 8.2 | 81.95 | +73.75px |
+| 6 | `2` | 7.91 | 76.52 | +68.61px |
+| 7 | `4` | 8.17 | 74.69 | +66.52px |
+| 8 | `5` | 7.73 | 71.05 | +63.32px |
+| 9 | `2` | 7.91 | 65.56 | +57.65px |
+| 10 | `6` | 8.22 | 65.13 | +56.91px |
+| 11 | `5` | 7.73 | 57.73 | +50px |
+| 12 | `2` | 7.91 | 56 | +48.09px |
+| 13 | `1 double bed` | 318 | 284 | -34px |
+| 14 | `1 sofa` | 318 | 284 | -34px |
+| 15 | `Anytime` | 88.38 | 56.38 | -32px |
+| 16 | `Add guests` | 105.86 | 75.13 | -30.73px |
+| 17 | `Overall rating` | 163.22 | 188 | +24.78px |
+| 18 | `Reviews` | 79 | 60 | -19px |
+| 19 | `Rating` | 79 | 60 | -19px |
+| 20 | `Years hosting` | 79 | 60 | -19px |
+| 21 | `Get 10% off your next stay.` | 216.55 | 230.55 | +14px |
+| 22 | `Learn more` | 74.48 | 88.48 | +14px |
+| 23 | `Learn more` | 74.48 | 88.48 | +14px |
+| 24 | `Learn more` | 74.48 | 88.48 | +14px |
+| 25 | `Claim` | 65.45 | 53.45 | -12px |
+| 26 | `4.95` | 186.92 | 198.92 | +12px |
+| 27 | `Exterior security cameras on property` | 279.86 | 270 | -9.86px |
+| 28 | `Mirashya Homes` | 190 | 199.5 | +9.5px |
+| 29 | `Reserve` | 92.78 | 100.78 | +8px |
+| 30 | `Show all photos` | 143.3 | 136.3 | -7px |
+| 31 | `Show all 19 reviews` | 189.97 | 183.97 | -6px |
+| 32 | `Co-Hosts` | 732 | 738 | +6px |
+| 33 | `Host details` | 732 | 738 | +6px |
+| 34 | `Show all 50 amenities` | 208.2 | 202.22 | -5.98px |
+| 35 | `Show more` | 104.23 | 100.23 | -4px |
+| 36 | `1 / 2` | 25.94 | 29.92 | +3.98px |
+| 37 | `October 2026` | 298 | 300 | +2px |
+| 38 | `November 2026` | 298 | 300 | +2px |
+| 39 | `Reserve` | 322 | 320 | -2px |
+| 40 | `You won't be charged yet` | 322 | 320 | -2px |
+| 41 | `Communication` | 105.41 | 103.59 | -1.82px |
+| 42 | `5.0` | 105.41 | 103.59 | -1.82px |
+| 43 | `Cleanliness` | 101.88 | 100.47 | -1.41px |
+| 44 | `5.0` | 101.88 | 100.47 | -1.41px |
+| 45 | `Accuracy` | 101.88 | 100.48 | -1.4px |
+| 46 | `5.0` | 101.88 | 100.48 | -1.4px |
+| 47 | `5.0` | 101.88 | 100.48 | -1.4px |
+| 48 | `Location` | 101.88 | 100.48 | -1.4px |
+| 49 | `4.8` | 101.88 | 100.48 | -1.4px |
+| 50 | `Value` | 101.88 | 100.48 | -1.4px |
+| 51 | `4.8` | 101.88 | 100.48 | -1.4px |
+
+---
+
 ## Full ranked table
 
-One row per differing node-property pair, most visible first. Ranked by property
+All face-independent — every row here is **KEEP**. One row per differing
+node-property pair, most visible first. Ranked by property
 severity × magnitude: font-size > font-weight > colour > line-height >
 letter-spacing > background-colour ≈ padding.
 

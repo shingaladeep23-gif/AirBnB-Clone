@@ -169,7 +169,10 @@ produces rounded outer corners with square inner edges. We previously applied
 | Tour column gap | **12px** | `--spacing-tour-gap` ✓ |
 | Full page height | **6266px** | — |
 
-Font stack, EXACT and matching what we ship:
+Font stack — EXACT for the reference. **Our metrics match it exactly (448.30px on
+the same 22px probe string), but our declared stack string does not**:
+`next/font/local` names our family `cereal`, not `"Airbnb Cereal VF"`. Rendering is
+identical; only a name-based probe can tell them apart. See DELTA-TYPOGRAPHY.md.
 
 ```
 "Airbnb Cereal VF", Circular, -apple-system, BlinkMacSystemFont,
