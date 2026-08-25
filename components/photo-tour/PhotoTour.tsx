@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import { useCallback, useRef } from "react";
 import { useScrollLock } from "@/lib/hooks/useScrollLock";
 import { useEscapeKey } from "@/lib/hooks/useEscapeKey";
 import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
+import { TOUR_SECTION_CAPTIONS, TOUR_TITLE } from "@/lib/tour-sections";
 import type { Listing, ListingPhoto } from "@/lib/types";
 import { ChevronIcon, HeartIcon, ShareIcon } from "@/components/ui/icons";
 
@@ -50,6 +52,18 @@ export interface PhotoTourProps {
  * pairs; the reference instead crops every slot to 3:2 (lead 458x305.33, pair
  * 223x148.66) and picks the slot by position alone. A 16:9 photo can sit in a
  * pair and a 4:3 photo can lead.
+ *
+ * TWO COLUMNS, NOT ONE — the P4-D sweep's main finding. The reference lays each
+ * section out as a 506px text column (heading + caption) beside a 458px photo
+ * column, 12px apart, inside a 976px container. Reading only the photo rects
+ * makes the tour look like a single column mysteriously offset to x977.5; it is
+ * not offset, it is the right-hand half of a pair. We shipped one 712px column,
+ * which made every photo half again too wide and dropped the captions entirely.
+ *
+ * THE FILMSTRIP was missing altogether. Nine thumbnails — the nine section lead
+ * images, each labelled with its section name and scrolling to it — in an
+ * 8-column grid, so the ninth wraps onto a second row exactly as it does on the
+ * reference.
  */
 
 /** A row is either one full-width lead photo or a pair two-across. */
@@ -110,6 +124,21 @@ export function buildRows(items: Indexed[]): Row[] {
   return rows;
 }
 
+/**
+ * The photo a section's filmstrip thumbnail shows: simply its first, whatever
+ * slot that photo happens to occupy.
+ *
+ * Reading `rows[0]` as a lead is the obvious version and it is wrong. "Full
+ * kitchen" holds exactly two photos, so its first row is a PAIR — and a lead-only
+ * reading silently dropped it, leaving eight thumbnails where the reference has
+ * nine. The gap was invisible because the strip still looked like a full row.
+ */
+function firstPhotoOf(group: RoomGroup): ListingPhoto | undefined {
+  const first = group.rows[0];
+  if (!first) return undefined;
+  return first.kind === "lead" ? first.photo.photo : first.photos[0]?.photo;
+}
+
 export function PhotoTour({
   listing,
   onClose,
@@ -121,6 +150,21 @@ export function PhotoTour({
   const containerRef = useFocusTrap<HTMLDivElement>();
 
   const groups = groupPhotosByRoom(listing.photos);
+
+  /*
+    The filmstrip scrolls to a section rather than navigating. Held in a ref map
+    keyed by room name so the thumbnails do not have to know about the DOM — and
+    so a section whose name changed would fail visibly at the click rather than
+    silently scrolling nowhere.
+  */
+  const sectionRefs = useRef(new Map<string, HTMLElement>());
+  const registerSection = useCallback((room: string, node: HTMLElement | null) => {
+    if (node) sectionRefs.current.set(room, node);
+    else sectionRefs.current.delete(room);
+  }, []);
+  const scrollToSection = useCallback((room: string) => {
+    sectionRefs.current.get(room)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   return (
     <div
@@ -135,47 +179,118 @@ export function PhotoTour({
       // closing the Lightbox reveals it again, but it must not remain reachable
       // by rotor/virtual-cursor navigation, which ignore focus traps.
       inert={!isTopmost || undefined}
-      className="fixed inset-0 z-40 overflow-y-auto bg-surface"
+      // A flex COLUMN whose body scrolls, not a single scrolling box.
+      //
+      // That distinction is measurable, and it is why the header title used to
+      // land 7.5px left of the reference's. A scrolling container carries the
+      // scrollbar, so anything centred inside it centres on 1895 rather than
+      // 1910. The reference centres its title on 1910 (x914.88 + 80.23/2 = 955)
+      // while centring the body on 1895 (x459.5 + 976/2 = 947.5) — which only
+      // happens if the header sits OUTSIDE the scrolling element. So it does.
+      className="fixed inset-0 z-40 flex flex-col bg-surface"
     >
-      <div className="sticky top-0 z-10 bg-surface">
-        <div className="mx-auto flex h-header-h w-full max-w-content items-center justify-between">
+      {/*
+        Three parts: Back at the far left, the title centred, Share and Save at
+        the far right. The title is centred absolutely rather than by flex, so its
+        position does not shift when the controls beside it change width.
+      */}
+      <div className="shrink-0 bg-surface">
+        <div className="relative flex h-header-h items-center px-6">
           <button
             type="button"
             onClick={onClose}
             aria-label="Close photo tour"
-            className="flex size-8 items-center justify-center rounded-pill text-fg transition-colors duration-fast hover:bg-surface-hover"
+            className="flex size-10 items-center justify-center rounded-pill text-fg transition-colors duration-fast hover:bg-surface-hover"
           >
             <ChevronIcon size={16} />
           </button>
 
-          <div className="flex items-center gap-1">
+          <h2 className="pointer-events-none absolute inset-x-0 text-center text-base font-medium text-fg">
+            {TOUR_TITLE}
+          </h2>
+
+          {/* Icon-only, 40x40, round. We shipped these with visible "Share" and
+              "Save" text; the reference's tour renders the icons alone and puts
+              the words only in the accessible name. */}
+          <div className="ml-auto flex items-center">
             <button
               type="button"
-              className="flex h-8 items-center gap-2 rounded-md px-2.5 transition-colors duration-fast hover:bg-surface-hover"
+              aria-label="Share"
+              className="flex size-10 items-center justify-center rounded-pill text-fg transition-colors duration-fast hover:bg-surface-hover"
             >
-              <ShareIcon size={14} />
-              <span className="text-sm font-medium text-fg underline">Share</span>
+              <ShareIcon size={16} />
             </button>
             <button
               type="button"
-              className="flex h-8 items-center gap-2 rounded-md px-2.5 transition-colors duration-fast hover:bg-surface-hover"
+              aria-label="Save"
+              className="flex size-10 items-center justify-center rounded-pill text-fg transition-colors duration-fast hover:bg-surface-hover"
             >
-              <HeartIcon size={14} />
-              <span className="text-sm font-medium text-fg underline">Save</span>
+              <HeartIcon size={16} />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-[712px] pb-20 pt-4">
-        <h2 className="pb-8 text-2xl font-medium text-fg">Photo tour</h2>
+      {/* The scroller is full-width so the scrollbar sits outside the 976px
+          column; centring inside the scroller is what puts that column at
+          x459.5, the reference's measurement. */}
+      <div className="flex-1 overflow-y-auto">
+      <div className="mx-auto w-tour-col-w pb-20">
+        {/*
+          Nine thumbnails in an EIGHT-column grid. The mismatch is the reference's,
+          not a rounding error on our side: eight cells of 111.5px with 12px gaps
+          is exactly 976, so the ninth wraps to a second row — which is where the
+          capture measures it, at x459.5 y358.19.
+        */}
+        <ul className="grid grid-cols-8 gap-tour-gap pb-14">
+          {groups.map((group) => {
+            const photo = firstPhotoOf(group);
+            if (!photo) return null;
+            return (
+              <li key={group.room}>
+                <button
+                  type="button"
+                  onClick={() => scrollToSection(group.room)}
+                  className="group w-full text-left"
+                >
+                  <span className="relative block h-tour-thumb-h overflow-hidden rounded-md bg-surface-sunken">
+                    <Image
+                      src={photo.src}
+                      alt=""
+                      fill
+                      sizes="112px"
+                      className="object-cover transition-opacity duration-fast group-hover:opacity-90"
+                    />
+                  </span>
+                  {/* 10px + a 16px line = the 26px the reference measures
+                      between the thumbnail's bottom and the cell's. */}
+                  <span className="block pt-2.5 text-xs text-fg">{group.room}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
 
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-tour-section-gap">
           {groups.map((group) => (
-            <section key={group.room} aria-label={group.room}>
-              <h3 className="pb-3 text-lg font-medium text-fg">{group.room}</h3>
+            <section
+              key={group.room}
+              ref={(node) => registerSection(group.room, node)}
+              aria-label={group.room}
+              className="flex gap-tour-gap"
+            >
+              {/* The left column: heading, and the caption where one exists.
+                  "Exterior" and "Additional photos" genuinely have none. */}
+              <div className="w-tour-caption-w shrink-0">
+                <h3 className="text-base font-medium text-fg">{group.room}</h3>
+                {TOUR_SECTION_CAPTIONS[group.room] ? (
+                  <p className="pt-1 text-sm text-subtle">
+                    {TOUR_SECTION_CAPTIONS[group.room]}
+                  </p>
+                ) : null}
+              </div>
 
-              <div className="flex flex-col gap-2">
+              <div className="flex w-tour-photo-w shrink-0 flex-col gap-tour-gap">
                 {group.rows.map((row, i) =>
                   row.kind === "lead" ? (
                     <TourPhoto
@@ -186,7 +301,7 @@ export function PhotoTour({
                       className="aspect-3/2"
                     />
                   ) : (
-                    <div key={`${group.room}-pair-${i}`} className="flex gap-2">
+                    <div key={`${group.room}-pair-${i}`} className="flex gap-tour-gap">
                       {row.photos.map((item) => (
                         <TourPhoto
                           key={item.photo.id}
@@ -203,6 +318,7 @@ export function PhotoTour({
             </section>
           ))}
         </div>
+      </div>
       </div>
     </div>
   );

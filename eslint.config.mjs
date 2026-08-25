@@ -17,7 +17,22 @@ const config = [
   {
     // _reference/ is recon scratch and must not ship or be linted; the rest is
     // generated output.
-    ignores: ["_reference/**", ".next/**", "node_modules/**", "next-env.d.ts"],
+    //
+    // `.next-*/**` matters as much as `.next/**`. Agents build into their own
+    // NEXT_DIST_DIR to avoid clobbering each other (see next.config.ts), and
+    // .gitignore already covers `/.next-*/` — but ESLint had only the exact
+    // `.next`, so the moment one of those directories existed `eslint .` started
+    // linting minified build output and `npm run verify` went red with 211
+    // errors in nobody's source. A glob, so the next reserved directory is
+    // covered without another edit.
+    ignores: [
+      "_reference/**",
+      ".next/**",
+      ".next-*/**",
+      "lib/generated/**",
+      "node_modules/**",
+      "next-env.d.ts",
+    ],
   },
   ...coreWebVitals,
   ...typescript,

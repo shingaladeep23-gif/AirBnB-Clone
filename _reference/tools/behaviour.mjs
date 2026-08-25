@@ -64,17 +64,24 @@ for (let i = 0; i < 40; i++) {
 }
 check('focus is TRAPPED (40 tabs stay inside)', escaped === null, escaped || '');
 
+// PHOTOS ONLY, NOT THE FILMSTRIP. The tour renders 43 photos plus a strip of 9
+// navigation thumbnails, so a bare `[role="dialog"] img` counts 52 and reports
+// "43 photos" as a failure when nothing is wrong. The thumbnails are decorative
+// (alt="") inside buttons named by their visible room text; the photos are the
+// ones inside a "view full screen" button. Every selector below scopes to those.
+const PHOTO = '[role="dialog"] button[aria-label*="view full screen"] img';
+
 // how many photos rendered
-const tourImgs = await page.evaluate(() => document.querySelectorAll('[role="dialog"] img').length);
+const tourImgs = await page.evaluate((sel) => document.querySelectorAll(sel).length, PHOTO);
 check('Photo Tour renders all 43 photos', tourImgs === 43, `rendered ${tourImgs}`);
 
 // duplicate alt text check (Jim's finding: 4 byte-identical pairs must not share alt)
-const dupAlts = await page.evaluate(() => {
-  const alts = [...document.querySelectorAll('[role="dialog"] img')].map(i => i.alt);
+const dupAlts = await page.evaluate((sel) => {
+  const alts = [...document.querySelectorAll(sel)].map(i => i.alt);
   const seen = {}, dups = [];
   alts.forEach(a => { if (seen[a]) dups.push(a); seen[a] = 1; });
   return dups;
-});
+}, PHOTO);
 check('no two photos share alt text', dupAlts.length === 0, dupAlts.slice(0, 3).join(' | '));
 
 // --- Escape closes and focus returns ---------------------------------------
@@ -105,10 +112,13 @@ const deepLinked = await page
   .then(() => true, () => false);
 check('Photo Tour is deep-linkable', deepLinked && (await page.locator('[role="dialog"]').count()) > 0);
 // Photos are lazy — give the first tile a chance to have a src before clicking it.
-await page.locator('[role="dialog"] img').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+await page.locator(PHOTO).first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
 
 // --- Lightbox --------------------------------------------------------------
-const firstPhoto = page.locator('[role="dialog"] img').first();
+// .first() on the loose selector hit a FILMSTRIP THUMBNAIL, which navigates
+// within the tour instead of opening the viewer — so the click "worked", the URL
+// never gained ?photo=, and two further assertions failed downstream from it.
+const firstPhoto = page.locator(PHOTO).first();
 await firstPhoto.click({ timeout: 10000 }).catch(() => {});
 await page.waitForTimeout(900);
 const lbUrl = page.url();
@@ -123,7 +133,12 @@ const shown = async () => page.evaluate(() => {
   const all = [...document.querySelectorAll('[role="dialog"]')];
   const d = all.find(x => /photo viewer/i.test(x.getAttribute('aria-label') || '')) || all[all.length - 1];
   const img = d?.querySelector('img');
-  const counter = d?.textContent?.match(/(\d+)\s*\/\s*(\d+)/);
+  // "8 of 43", not "8 / 43" — the reference's caption uses the word, and the
+  // slash-only regex that used to be here quietly matched nothing, so every
+  // detail string fell back to the filename. The assertions compare src and
+  // still passed, which is exactly how a checker ends up reporting confident
+  // nonsense next to a green tick.
+  const counter = d?.textContent?.match(/(\d+)\s+of\s+(\d+)/);
   return {
     dialogs: all.length,
     label: d?.getAttribute('aria-label'),

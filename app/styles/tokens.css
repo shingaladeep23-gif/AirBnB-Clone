@@ -245,6 +245,12 @@
   --spacing-card-w: 318px; /* MEASURED: sleeping-arrangement photos are 318x212 at
                               x387.5 and x721.5 — 318 + 16 + 318 = 652, i.e.
                               exactly two cards to the content column */
+  --spacing-viewer-inset: 88px; /* MEASURED: the Photo viewer's stage. Its image
+                                   sits at y88 and is 824 tall in a 1000-tall
+                                   viewport, so the inset is 88 top AND bottom.
+                                   Centring the prev/next controls inside that
+                                   stage is what lands them at the measured y480,
+                                   i.e. exactly half of 1000 - 40. */
   --spacing-control-h: 35px; /* MEASURED: the small pill controls that sit beside
                                 a heading — Share 79.58x35, Save 73.38x35, and
                                 the promo card's Claim 63.72x35. We shipped 32. */
@@ -259,6 +265,27 @@
      run 115 ("Decor 2") to 166 ("Indoor spaces 2") — at a fixed h48 with a 16px
      radius. No fixed width can express that, so the token had to go. */
   --spacing-laurel-h: 150px; /* INFERRED: the laurel images were not captured */
+
+  /* PHOTO TOUR — all MEASURED from capture-tour.json, which records the button
+     rects rather than the <img> rects. Use the buttons: the tour's very first
+     image was caught mid-transition at 476.32x317.54 while its button was
+     already settled at the 458x305.33 every other lead measures. */
+  --spacing-tour-col-w: 976px; /* MEASURED: the filmstrip spans x459.5 -> x1435.5 */
+  --spacing-tour-caption-w: 506px; /* MEASURED: 976 - 12 gap - 458 photo column.
+                                      The tour is TWO columns — section heading
+                                      and its caption on the left, photos on the
+                                      right — which is why the photo column sits
+                                      at x977.5 and looks off-centre on its own. */
+  --spacing-tour-photo-w: 458px; /* MEASURED: every lead is 458 wide, and the
+                                    pairs are 223 + 12 + 223 = 458 */
+  --spacing-tour-gap: 12px; /* MEASURED: between paired photos, between rows, and
+                              between filmstrip cells */
+  --spacing-tour-section-gap: 20px; /* MEASURED: 1029.36 -> 1049.36 between the
+                                       last photo of one section and the first of
+                                       the next. Distinct from the 12px inside a
+                                       section, so the two cannot share a token. */
+  --spacing-tour-thumb-h: 105px; /* MEASURED 105.19 — the fraction is a sub-pixel
+                                    artifact of dividing 976 into 8 columns */
 
   /* --------------------------------------------------------------------------
    * MOTION — the reference is restrained: short, ease-out transitions.
