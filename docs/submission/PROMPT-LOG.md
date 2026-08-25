@@ -151,6 +151,8 @@ Two blockers in this phase, both dispatched with evidence: every API route 500'd
 production build (SQLite path resolution), and `158ec00` would not build at all
 (`/_global-error` prerender crash).
 
+**Prompt 6** · 22 Aug, 09:31 UTC — `continue`
+
 **This phase was later cancelled by the human — see Phase 5.** The backend code is
 still in the tree; it is simply no longer the thing being graded.
 
@@ -161,10 +163,10 @@ still in the tree; it is simply no longer the thing being graded.
 This is the arc worth reading, because the project was wrong in a disclosed way for
 two phases and then got the data that proved exactly *how* wrong.
 
-**Prompt 6** · 24 Aug, 06:52 UTC — `retry` ·
-**Prompt 7** · 24 Aug, 07:00 UTC — `it is connected`
+**Prompt 7** · 24 Aug, 06:52 UTC — `retry` ·
+**Prompt 8** · 24 Aug, 07:00 UTC — `it is connected`
 
-**Prompt 8** · 24 Aug, 08:28 UTC
+**Prompt 9** · 24 Aug, 08:28 UTC
 
 > tell me how do i give you access to my browsers so you can do these yourselves try
 > comet browser maybe
@@ -189,7 +191,7 @@ Phase 3 dispatches, all four in one wave at 08:38–08:39 UTC:
 | Kelly | **P3-C** — corner radius + geometry parity against real measurements |
 | Ryan | **P3-D** — correct the provenance story now that content is genuinely captured |
 
-**Prompt 9** · 24 Aug, 08:49 UTC — `keep going and let me know when all 4 are done`
+**Prompt 10** · 24 Aug, 08:49 UTC — `keep going and let me know when all 4 are done`
 
 **What the capture cost, measured.** Most geometry was right — hero grid, 8px gaps,
 font stack, page height to within a few pixels. The content was not. Host stats,
@@ -215,9 +217,9 @@ came out of it, now enforced in tooling:
    starts a server. It would have read as coverage on every run. Fixed in `6c875a1`.
 3. **Measure the rendering, not the source.**
 
-**Prompt 10** · 24 Aug, 11:20 UTC — `continue` ·
-**Prompt 11** · 24 Aug, 16:28 UTC — `continue your work and finish it asap we dont have time` ·
-**Prompt 12** · 24 Aug, 16:59 UTC — `retry chrome`
+**Prompt 11** · 24 Aug, 11:20 UTC — `continue` ·
+**Prompt 12** · 24 Aug, 16:28 UTC — `continue your work and finish it asap we dont have time` ·
+**Prompt 13** · 24 Aug, 16:59 UTC — `retry chrome`
 
 ---
 
@@ -257,13 +259,20 @@ P4-B was re-armed on 25 Aug at 02:07 UTC once background/border/shadow were capt
 for the first time (176 painted elements). Headline finding: the **Reserve button is a
 three-stop gradient**, `linear-gradient(to right, #e61e4d, #e31c5f, #d70466)` — not the
 flat `#ff385c` any reasonable person would assume. A wrong background on the primary
-CTA is unmissable. Landed by Jim in `8508dd3`.
+CTA is unmissable. Landed in `8508dd3`.
+
+> **A note on attribution.** Every commit in this repository is authored as
+> `Creed <creed@hive.local>` — the hive shares one git identity. Per-agent ownership
+> below is therefore taken from the **dispatch contracts**, which are timestamped and
+> archived, not from `git blame`, which cannot distinguish the agents. Where this log
+> says an agent produced something, the evidence is the dispatch plus the commit
+> content, not the commit author field.
 
 ---
 
 ## Phase 5 — frontend only, and the human's deadline
 
-**Prompt 13** · 25 Aug, 05:18 UTC
+**Prompt 14** · 25 Aug, 05:18 UTC
 
 > lllOkay I want you to now again start working on the front end. Cancel all the backend
 > operations as of now. I just want the front end. I want to create the clone first and I
@@ -273,8 +282,8 @@ CTA is unmissable. Landed by Jim in `8508dd3`.
 > soon so please look into it and start all the agents. Instead of chrome I want you to
 > try comet and do something and maybe
 
-**Prompt 14** · 25 Aug, 05:21 UTC — `push everything to gir and then continue keep pushing to git and store our work`
-**Prompt 15** · 25 Aug, 06:50 UTC — `push everything to git and then continue, keep pushing to git and store our work`
+**Prompt 15** · 25 Aug, 05:21 UTC — `push everything to gir and then continue keep pushing to git and store our work`
+**Prompt 16** · 25 Aug, 06:50 UTC — `push everything to git and then continue, keep pushing to git and store our work`
 
 Three standing orders came out of these, issued to all four agents:
 
@@ -292,8 +301,8 @@ The P5 wave, 06:52 UTC:
 | Jim | **P5-C** — owns the theme layer; land the measured surfaces, starting with the gradient |
 | Kelly | **P5-D** — `check:visual` on Comet, the only gate that catches what the human keeps seeing |
 
-**Prompt 16** · 25 Aug, 12:55 UTC — `continue` ·
-**Prompt 17** · 25 Aug, 13:04 UTC — `continue`
+**Prompt 17** · 25 Aug, 12:55 UTC — `continue` ·
+**Prompt 18** · 25 Aug, 13:04 UTC — `continue`
 
 A commit-hygiene rule was issued mid-phase after real damage: commit `701534f` carries
 one agent's subject line and another agent's eight files, because a broad `git add`
@@ -308,7 +317,7 @@ Landed in this phase: `75cd4e2` (secondary text #222 not #717171, 25 nodes),
 
 ## Submission
 
-**Prompt 18** · 25 Aug, 15:31 UTC
+**Prompt 19** · 25 Aug, 15:31 UTC
 
 > Ok Michael, it's time for submission and I want you to push everything that we have done
 > till now. What's not done should stop immediately and I want you to do some things other
