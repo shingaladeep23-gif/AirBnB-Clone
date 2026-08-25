@@ -125,7 +125,7 @@ function Stat({
         bordered ? "border-x border-border-subtle" : ""
       }`}
     >
-      <dt className="text-xs text-subtle">{label}</dt>
+      <dt className="text-xs text-fg">{label}</dt>
       <dd className="pt-0.5 text-base font-medium text-fg">{value}</dd>
     </div>
   );

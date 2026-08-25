@@ -33,7 +33,7 @@ export function GuestFavouriteCard({ listing }: { listing: Listing }) {
           <p className="text-md font-medium leading-tight text-fg">
             Guest favourite
           </p>
-          <p className="max-w-[220px] pt-0.5 text-xs text-subtle">
+          <p className="max-w-[220px] pt-0.5 text-xs text-fg">
             {listing.guestFavouriteCopy}
           </p>
         </div>

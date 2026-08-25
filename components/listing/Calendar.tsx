@@ -65,7 +65,7 @@ export function Calendar({ listing }: { listing: Listing }) {
                   {DAY_INITIALS.map((initial, i) => (
                     <span
                       key={`${initial}-${i}`}
-                      className="flex h-9 items-center justify-center text-xs font-medium text-subtle"
+                      className="flex h-9 items-center justify-center text-xs font-medium text-fg"
                     >
                       {initial}
                     </span>

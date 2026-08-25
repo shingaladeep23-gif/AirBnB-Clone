@@ -17,7 +17,7 @@ export function PromoCard({ promo }: { promo: Promo }) {
 
       <div className="flex-1">
         <p className="text-sm font-medium text-fg">{promo.headline}</p>
-        <p className="text-xs text-subtle">{promo.terms}</p>
+        <p className="text-xs text-fg">{promo.terms}</p>
       </div>
 
       <button

@@ -48,7 +48,7 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
             />
           </div>
           <h2 className="pt-4 text-2xl font-medium text-fg">Guest favourite</h2>
-          <p className="max-w-[420px] pt-2 text-center text-base text-subtle">
+          <p className="max-w-[420px] pt-2 text-center text-base text-fg">
             {listing.guestFavouriteReviewsCopy}
           </p>
           {/* Inert, as on the reference — it explains a policy we do not host. */}
@@ -68,7 +68,7 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
           <div className="pt-2">
             {[5, 4, 3, 2, 1].map((star) => (
               <div key={star} className="flex items-center gap-2">
-                <span className="w-2 text-2xs text-subtle">{star}</span>
+                <span className="w-2 text-2xs text-fg">{star}</span>
                 <span className="h-1 flex-1 overflow-hidden rounded-pill bg-border-subtle">
                   <span
                     className="block h-full rounded-pill bg-fg"
