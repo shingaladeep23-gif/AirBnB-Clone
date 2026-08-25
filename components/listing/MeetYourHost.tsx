@@ -51,7 +51,7 @@ export function MeetYourHost({
           {host.facts.length > 0 && (
             <ul className="pt-6">
               {host.facts.map((fact) => (
-                <li key={fact} className="pb-2 text-base text-fg">
+                <li key={fact} className="pb-2 text-md text-fg">
                   {fact}
                 </li>
               ))}
@@ -91,7 +91,7 @@ export function MeetYourHost({
 
           <button
             type="button"
-            className="mt-8 h-12 rounded-md bg-fg px-6 text-base font-medium text-fg-inverse transition-opacity duration-fast hover:opacity-90"
+            className="mt-8 h-12 rounded-md bg-fg px-6 text-md font-medium text-fg-inverse transition-opacity duration-fast hover:opacity-90"
           >
             Message host
           </button>

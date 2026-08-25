@@ -48,7 +48,7 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
             />
           </div>
           <h2 className="pt-4 text-2xl font-medium text-fg">Guest favourite</h2>
-          <p className="max-w-[420px] pt-2 text-center text-base text-fg">
+          <p className="max-w-[420px] pt-2 text-center text-md text-fg">
             {listing.guestFavouriteReviewsCopy}
           </p>
           {/* Inert, as on the reference — it explains a policy we do not host. */}
@@ -143,7 +143,7 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
                   className="size-12"
                 />
                 <div>
-                  <p className="text-base font-medium text-fg">
+                  <p className="text-md font-medium text-fg">
                     {review.authorName}
                   </p>
                   <p className="text-sm text-subtle">{review.authorTenure}</p>
@@ -162,7 +162,7 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
                 <span className="text-xs text-subtle">· {review.date}</span>
               </div>
 
-              <p className="line-clamp-4 pt-2 text-base text-fg">{review.body}</p>
+              <p className="line-clamp-4 pt-2 text-md text-fg">{review.body}</p>
             </li>
           ))}
         </ul>

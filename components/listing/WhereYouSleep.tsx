@@ -35,7 +35,7 @@ export function WhereYouSleep({
             <span className="text-fg">
               <LineIcon name={arrangement.icon} size={24} />
             </span>
-            <p className="pt-3 text-base font-medium text-fg">
+            <p className="pt-3 text-md font-medium text-fg">
               {arrangement.room}
             </p>
             <p className="pt-0.5 text-sm text-subtle">

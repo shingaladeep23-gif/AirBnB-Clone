@@ -42,7 +42,7 @@ export function LocationSection({ location }: { location: LocationInfo }) {
       <h3 className="pt-6 text-lg font-medium text-fg">
         {location.highlightsHeading}
       </h3>
-      <p className="max-w-[680px] pt-3 text-base text-fg">{location.blurb}</p>
+      <p className="max-w-[680px] pt-3 text-md text-fg">{location.blurb}</p>
 
       <button
         type="button"
