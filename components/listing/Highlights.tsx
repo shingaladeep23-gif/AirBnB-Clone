@@ -17,7 +17,7 @@ export function Highlights({ highlights }: { highlights: ListingHighlight[] }) {
             <LineIcon name={highlight.icon} size={24} />
           </span>
           <div>
-            <p className="text-base font-medium text-fg">{highlight.title}</p>
+            <p className="text-sm font-medium text-fg">{highlight.title}</p>
             <p className="pt-0.5 text-sm text-subtle">{highlight.subtitle}</p>
           </div>
         </div>

@@ -101,7 +101,7 @@ export function Calendar({ listing }: { listing: Listing }) {
       <div className="flex justify-end pt-4">
         <button
           type="button"
-          className="rounded-md px-3 py-1.5 text-base font-medium text-fg underline transition-colors duration-fast hover:bg-surface-hover"
+          className="rounded-md px-3 py-1.5 text-sm font-medium text-fg underline transition-colors duration-fast hover:bg-surface-hover"
         >
           Clear dates
         </button>

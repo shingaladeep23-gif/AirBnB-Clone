@@ -37,7 +37,7 @@ export function LocationSection({ location }: { location: LocationInfo }) {
         </div>
       </div>
 
-      <p className="pt-6 text-base text-fg">{location.disclaimer}</p>
+      <p className="pt-6 text-sm text-fg">{location.disclaimer}</p>
 
       <h3 className="pt-6 text-lg font-medium text-fg">
         {location.highlightsHeading}

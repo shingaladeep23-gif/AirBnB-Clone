@@ -54,7 +54,7 @@ export function ReviewsSection({ listing }: { listing: Listing }) {
           {/* Inert, as on the reference — it explains a policy we do not host. */}
           <button
             type="button"
-            className="pt-2 text-base font-medium text-fg underline transition-colors duration-fast hover:text-subtle"
+            className="pt-2 text-sm font-medium text-fg underline transition-colors duration-fast hover:text-subtle"
           >
             How reviews work
           </button>

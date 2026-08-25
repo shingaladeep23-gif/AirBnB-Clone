@@ -48,7 +48,7 @@ export function SimilarListings({ listings }: { listings: SimilarListing[] }) {
                 className="object-cover"
               />
             </div>
-            <p className="truncate pt-3 text-base font-medium text-fg">
+            <p className="truncate pt-3 text-sm font-medium text-fg">
               {item.title}
             </p>
             {/* Price with no qualifier — the reference shows the bare amount,
