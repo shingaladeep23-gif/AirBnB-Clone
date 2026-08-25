@@ -42,12 +42,27 @@
    * gradient rather than a flat fill; its stops are tokenised so the button and
    * any hover state stay in sync.
    * ------------------------------------------------------------------------ */
-  --color-rausch: #ff385c;
-  --color-rausch-dark: #e00b41;
-  --color-rausch-darker: #c1123f;
+  --color-rausch: #ff385c; /* MEASURED — appears as a painted background */
+  --color-rausch-dark: #e00b41; /* INFERRED — no call site in the capture */
+  --color-rausch-darker: #c1123f; /* INFERRED — no call site in the capture */
+
+  /* The three CTA stops are MEASURED, exactly as the reference paints them:
+     linear-gradient(to right, rgb(230,30,77) 0%, rgb(227,28,95) 50%,
+     rgb(215,4,102) 100%), on a 999px pill with white text.
+
+     A flat #ff385c is what everyone assumes and it is WRONG on the single most
+     important control on the page. The stops were already tokenised correctly;
+     what was missing is the composed gradient below, so the button cannot drift
+     from the measurement by reassembling the stops by hand. */
   --color-cta-from: #e61e4d;
   --color-cta-via: #e31c5f;
   --color-cta-to: #d70466;
+  --gradient-cta: linear-gradient(
+    to right,
+    var(--color-cta-from) 0%,
+    var(--color-cta-via) 50%,
+    var(--color-cta-to) 100%
+  );
 
   /* --------------------------------------------------------------------------
    * FOREGROUND — text colours, darkest to lightest.
@@ -75,6 +90,12 @@
   --color-surface-raised: #ffffff;
   --color-surface-hover: #f7f7f7;
   --color-surface-inverse: #000000;
+  /* MEASURED, and we had no token for either. #f2f2f2 is the fill behind
+     "Message host" and the calendar's in-range dates — we were rendering that
+     button INVERTED, dark-on-white, because the nearest token we had was
+     surface-inverse. #eeeeee is the step below it. */
+  --color-surface-muted: #f2f2f2;
+  --color-surface-pressed: #eeeeee;
   /* WHITE. MEASURED: the reference's Photo viewer backdrop is rgb(255,255,255)
      at z-index 140 with `transition: opacity 0.25s`.
      This token was #000000 on the reasoning that "Airbnb's viewer is solid
@@ -101,6 +122,35 @@
   --color-border: #dddddd;
   --color-border-subtle: #ebebeb;
   --color-border-strong: #222222;
+  /* MEASURED, added from the surface capture — the reference paints eight border
+     colours and we carried only three. These are the two that appear on real
+     controls; the remaining three measured borders (rgb(34,34,34) = border-strong,
+     rgba(0,0,0,0) = none, 2px solid #fff = the avatar ring) are already covered. */
+  --color-border-mid: #cccccc;
+  --color-border-hairline: rgba(0, 0, 0, 0.08);
+
+  /* --------------------------------------------------------------------------
+   * AVATAR TINTS — MEASURED, and they are per-person, not one token.
+   *
+   * Guests and co-hosts without a photo render as a letter tile with a pastel
+   * background and a saturated letter. The reference uses a DIFFERENT pair per
+   * person; we were shipping one grey for everyone, which is why all four tiles
+   * read as placeholders. Pairs are `-tint` (background) and `-accent` (letter),
+   * both measured on the same element.
+   *
+   * Whatever function generates these from a name is UNKNOWN — four samples are
+   * not enough to derive it — so they are stored as data, not computed.
+   * ------------------------------------------------------------------------ */
+  --color-tint-sand: #f7ede2;
+  --color-accent-sand: #c1852a; /* Amit "A" */
+  --color-tint-lilac: #efeaf7;
+  --color-accent-lilac: #8b6fc4; /* Vedant "V" */
+  --color-tint-rose: #fde7ef;
+  --color-accent-rose: #d4356e; /* co-host "S" */
+  --color-tint-sky: #e7f0fd;
+  --color-accent-sky: #3a6ecc; /* co-host "A" */
+  /* A fifth tint is measured with no accent partner observed on the page. */
+  --color-tint-mist: #e8eef0;
 
   /* --------------------------------------------------------------------------
    * TYPE SCALE — MEASURED. Every size below appears in the capture, and every
@@ -187,15 +237,24 @@
      which is not a measurable box in the capture — see `rounded-card` there. */
 
   /* --------------------------------------------------------------------------
-   * SHADOWS — elevation ladder.
-   * `card` is the booking-card resting elevation; `hover` is the lift used by
-   * gallery tiles and pill buttons; `modal` backs the Photo Tour chrome.
+   * SHADOWS — MEASURED. The reference paints exactly five distinct shadows
+   * across its 176 painted elements (`capture-surfaces.json`), and these are
+   * those five, one per token.
+   *
+   * Four of the five values below replaced LOCAL GUESSES. Only `card` had ever
+   * matched — every other token was a plausible-looking invention, which is the
+   * same failure mode as the 18px radius and the black Lightbox backdrop.
+   *
+   * `control` is the only one whose ASSIGNMENT is verified as well as its value:
+   * "Show all photos" measures 0 2px 8px rgba(0,0,0,0.15) at its call site. The
+   * other four are measured values whose mapping to a role is inferred from
+   * weight order — if a call site ever contradicts one, the call site wins.
    * ------------------------------------------------------------------------ */
-  --shadow-header: 0 1px 0 rgba(0, 0, 0, 0.08);
-  --shadow-card: 0 6px 16px rgba(0, 0, 0, 0.12);
-  --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.18);
-  --shadow-modal: 0 8px 28px rgba(0, 0, 0, 0.28);
-  --shadow-control: 0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-header: 0 1px 4px rgba(0, 0, 0, 0.08); /* was 0 1px 0 — GUESSED */
+  --shadow-card: 0 6px 16px rgba(0, 0, 0, 0.12); /* unchanged; already matched */
+  --shadow-control: 0 2px 8px rgba(0, 0, 0, 0.15); /* MEASURED at its call site */
+  --shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.2); /* was 0 2px 4px/.18 — GUESSED */
+  --shadow-modal: 0 4px 12px rgba(0, 0, 0, 0.3); /* was 0 8px 28px/.28 — GUESSED */
 
   /* --------------------------------------------------------------------------
    * LAYOUT — the desktop grid.

@@ -19,6 +19,15 @@
     background-color: var(--color-surface);
     color: var(--color-fg);
     font-family: var(--font-sans);
+    /* MEASURED: the reference's body computes to `400 14px/20.02px`. We set no
+       font-size at all, so we inherited the browser's 16px and every element
+       that did not name a size explicitly rendered 2px too large — the single
+       biggest cause in DELTA-TYPOGRAPHY.md, accounting for the 15px->16px and
+       14px->16px clusters together.
+       `html` stays at the browser default 16px, as the reference's does, so rem
+       units are unaffected. */
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
